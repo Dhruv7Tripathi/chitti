@@ -12,6 +12,7 @@
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "express.io": "^1.1.13",
+    "prisma": "^6.4.1",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {

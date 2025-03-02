@@ -3,55 +3,49 @@ import { useState } from "react";
 import { useSocket } from "../hooks/useSocket";
 
 export default function ChatPage() {
+  const [message, setMessage] = useState("");
   const [room, setRoom] = useState("general");
-  const { messages, sendMessage, isConnected } = useSocket(room);
-  const [input, setInput] = useState("");
+  const [username, setUsername] = useState("User" + Math.floor(Math.random() * 1000));
+  const { messages, sendMessage } = useSocket(room);
 
   return (
-    <div className="flex flex-col items-center p-6 space-y-4">
-      <h1 className="text-2xl font-bold">💬 Chat Room: {room}</h1>
-      <p className={`text-sm ${isConnected ? "text-green-500" : "text-red-500"}`}>
-        {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
-      </p>
+    <div style={{ padding: "20px", maxWidth: "500px", margin: "auto" }}>
+      <h2>Chat Room</h2>
+      <label>Room:</label>
+      <select onChange={(e) => setRoom(e.target.value)} value={room}>
+        <option value="general">General</option>
+        <option value="tech">Tech</option>
+      </select>
 
-      <input
-        type="text"
-        placeholder="Enter Room Name"
-        className="p-2 border rounded"
-        value={room}
-        onChange={(e) => setRoom(e.target.value)}
-      />
-
-      <div className="w-96 h-64 border p-4 overflow-auto">
+      <div
+        style={{
+          border: "1px solid black",
+          padding: "10px",
+          height: "300px",
+          overflowY: "scroll",
+          marginTop: "10px",
+        }}
+      >
         {messages.map((msg, index) => (
-          <p key={index} className={msg.sender === "system" ? "text-gray-500" : "text-black"}>
-            <strong>{msg.sender === "system" ? "[System]" : msg.sender}:</strong> {msg.message}
+          <p key={index}>
+            <strong>{msg.sender}:</strong> {msg.text}
           </p>
         ))}
       </div>
 
       <input
         type="text"
-        placeholder="Type a message..."
-        className="p-2 border rounded w-96"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && input.trim() !== "") {
-            sendMessage(input);
-            setInput("");
-          }
-        }}
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Type your message..."
+        style={{ width: "100%", marginTop: "10px" }}
       />
-
       <button
-        className="px-4 py-2 bg-blue-500 text-white rounded"
         onClick={() => {
-          if (input.trim() !== "") {
-            sendMessage(input);
-            setInput("");
-          }
+          sendMessage(message, username);
+          setMessage("");
         }}
+        style={{ marginTop: "5px" }}
       >
         Send
       </button>

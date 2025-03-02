@@ -1,38 +1,51 @@
 import express from "express";
-import { createServer } from "http";
+import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import { PrismaClient } from "@prisma/client";
 
 const app = express();
-const server = createServer(app);
+app.use(cors());
+
+const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "http://localhost:3000", credentials: true },
+  cors: {
+    origin: "*",
+  },
 });
 
-const users: Record<string, string> = {};
+const prisma = new PrismaClient();
 
 io.on("connection", (socket) => {
   console.log(`✅ A user connected: ${socket.id}`);
 
-  socket.on("join room", (room) => {
+  socket.on("joinRoom", async (room) => {
     socket.join(room);
-    users[socket.id] = room;
-    socket.broadcast.to(room).emit("user joined", `${socket.id} joined the room`);
     console.log(`📌 User ${socket.id} joined room: ${room}`);
+
+    // Fetch previous messages from DB
+    const messages = await prisma.message.findMany({
+      where: { room },
+      orderBy: { createdAt: "asc" },
+    });
+
+    socket.emit("previousMessages", messages);
   });
 
-  socket.on("chat message", ({ room, message }) => {
-    io.to(room).emit("chat message", { sender: socket.id, message });
+  socket.on("sendMessage", async ({ room, message, sender }) => {
     console.log(`📩 Message in Room ${room}: ${message}`);
+
+    // Save message to database
+    const savedMessage = await prisma.message.create({
+      data: { room, text: message, sender },
+    });
+
+    // Send message to everyone in the room
+    io.to(room).emit("receiveMessage", savedMessage);
   });
 
   socket.on("disconnect", () => {
-    const room = users[socket.id];
-    if (room) {
-      socket.broadcast.to(room).emit("user left", `${socket.id} left the chat`);
-      console.log(`❌ User ${socket.id} left room: ${room}`);
-      delete users[socket.id];
-    }
+    console.log(`❌ User disconnected: ${socket.id}`);
   });
 });
 

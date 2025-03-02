@@ -4,41 +4,28 @@ import { io } from "socket.io-client";
 const socket = io("http://localhost:4000");
 
 export const useSocket = (room: string) => {
-  const [messages, setMessages] = useState<{ sender: string; message: string }[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
+  const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
 
   useEffect(() => {
-    socket.emit("join room", room);
+    socket.emit("joinRoom", room);
 
-    socket.on("connect", () => {
-      setIsConnected(true);
-      console.log("✅ Connected to server");
+    socket.on("previousMessages", (prevMessages) => {
+      setMessages(prevMessages);
     });
 
-    socket.on("user joined", (message) => {
-      console.log(message);
-      setMessages((prev) => [...prev, { sender: "system", message }]);
-    });
-
-    socket.on("chat message", (data) => {
+    socket.on("receiveMessage", (data) => {
       setMessages((prev) => [...prev, data]);
     });
 
-    socket.on("user left", (message) => {
-      console.log(message);
-      setMessages((prev) => [...prev, { sender: "system", message }]);
-    });
-
     return () => {
-      socket.off("user joined");
-      socket.off("chat message");
-      socket.off("user left");
+      socket.off("previousMessages");
+      socket.off("receiveMessage");
     };
   }, [room]);
 
-  const sendMessage = (message: string) => {
-    socket.emit("chat message", { room, message });
+  const sendMessage = (message: string, sender: string) => {
+    socket.emit("sendMessage", { room, message, sender });
   };
 
-  return { messages, sendMessage, isConnected };
+  return { messages, sendMessage };
 };
