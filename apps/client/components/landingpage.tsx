@@ -9,7 +9,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-indigo-700 text-white">
       {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
@@ -24,7 +24,7 @@ export default function LandingPage() {
             }}
           />
         ))}
-      </div>
+      </div> */}
 
       {/* Navbar */}
       <nav className="relative z-10 px-6 py-4 flex justify-between items-center">
@@ -65,7 +65,7 @@ export default function LandingPage() {
                     onChange={(e) => setUsername(e.target.value)}
                   />
                   <Link
-                    href={username ? `/chat?username=${encodeURIComponent(username)}` : "/chat"}
+                    href={username ? `/chat?username=${encodeURIComponent(username)}` : "/room"}
                     className="bg-white text-indigo-800 px-6 py-3 rounded-full font-medium hover:bg-indigo-100 transition"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
