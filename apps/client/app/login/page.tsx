@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { useAuth } from '../context/AuthContext';
-import { loginUser } from '../services/api';
+import { useAuth } from '@/context/auth';
+import { loginUser } from '@/services/api';
 
 export default function Login() {
   const [email, setEmail] = useState('');
