@@ -1,3 +1,38 @@
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
+// model User {
+//   id        String    @id @default(uuid())
+//   username  String    @unique
+//   email     String    @unique
+//   password  String
+//   messages  Message[] // Relation: A user can send multiple messages
+//   createdAt DateTime  @default(now())
+// }
+
+// model Room {
+//   id        String    @id @default(uuid())
+//   name      String    @unique
+//   messages  Message[] // Relation: A room can have multiple messages
+//   createdAt DateTime  @default(now())
+// }
+
+// model Message {
+//   id        String   @id @default(uuid())
+//   room      Room     @relation(fields: [roomId], references: [id])
+//   roomId    String
+//   sender    User     @relation(fields: [senderId], references: [id])
+//   senderId  String
+//   text      String
+//   createdAt DateTime @default(now())
+// }
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,23 +47,26 @@ model User {
   username  String    @unique
   email     String    @unique
   password  String
-  messages  Message[] // Relation: A user can send multiple messages
+  messages  Message[]
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Room {
   id        String    @id @default(uuid())
   name      String    @unique
-  messages  Message[] // Relation: A room can have multiple messages
+  messages  Message[]
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Message {
   id        String   @id @default(uuid())
-  room      Room     @relation(fields: [roomId], references: [id])
-  roomId    String
+  text      String
   sender    User     @relation(fields: [senderId], references: [id])
   senderId  String
-  text      String
+  room      Room     @relation(fields: [roomId], references: [id])
+  roomId    String
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
