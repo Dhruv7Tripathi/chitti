@@ -295,8 +295,6 @@
 // server.listen(PORT, () => {
 //   console.log(`🚀 Server running at http://localhost:${PORT}`);
 // });
-
-
 import express, { Request, Response, NextFunction } from "express";
 import http from "http";
 import { Server, Socket } from "socket.io";
@@ -318,7 +316,6 @@ const io = new Server(server, {
   cors: { origin: "*" },
 });
 
-// Initialize Prisma client
 const prisma = new PrismaClient();
 
 const SECRET_KEY = process.env.SECRET_KEY as string;
@@ -331,6 +328,25 @@ interface AuthRequest extends Request {
   userId?: string;
 }
 
+io.use((socket, next) => {
+  console.log("🔍 Checking WebSocket token:", socket.handshake.auth?.token);
+  const token = socket.handshake.auth?.token;
+
+  if (!token) {
+    console.error("❌ WebSocket Authentication Failed: No token provided");
+    return next(new Error("Authentication error: Token required"));
+  }
+
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY) as { userId: string };
+    socket.data.userId = decoded.userId;
+    next();
+  } catch (error) {
+    console.error("❌ WebSocket Authentication Failed:", error);
+    return next(new Error("Authentication error: Invalid token"));
+  }
+});
+
 app.post("/register", async (req: Request, res: Response): Promise<void> => {
   const { username, email, password } = req.body;
 
@@ -340,34 +356,25 @@ app.post("/register", async (req: Request, res: Response): Promise<void> => {
   }
 
   try {
-    // Hash password before storing
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const user = await prisma.user.create({
-      data: {
-        username,
-        email,
-        password: hashedPassword,
-      },
+      data: { username, email, password: hashedPassword },
     });
-
-    // Don't send password back in response
-    const { password: _, ...userWithoutPassword } = user;
 
     res.status(201).json({
       message: "User registered successfully",
-      user: userWithoutPassword,
+      user: { id: user.id, username: user.username, email: user.email },
     });
   } catch (error) {
+    console.error("❌ Error registering user:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       res.status(400).json({ error: "Username or email already exists" });
       return;
     }
-    res.status(500).json({ error: "Error registering user", details: error });
+    res.status(500).json({ error: "Error registering user" });
   }
 });
 
-// Login User
 app.post("/login", async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
@@ -378,14 +385,7 @@ app.post("/login", async (req: Request, res: Response): Promise<void> => {
 
   try {
     const user = await prisma.user.findUnique({ where: { email } });
-
-    if (!user) {
-      res.status(401).json({ error: "Invalid credentials" });
-      return;
-    }
-
-    const passwordValid = await bcrypt.compare(password, user.password);
-    if (!passwordValid) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       res.status(401).json({ error: "Invalid credentials" });
       return;
     }
@@ -394,11 +394,11 @@ app.post("/login", async (req: Request, res: Response): Promise<void> => {
 
     res.json({ message: "Login successful", token, userId: user.id, username: user.username });
   } catch (error) {
+    console.error("❌ Error logging in:", error);
     res.status(500).json({ error: "Error logging in" });
   }
 });
 
-// Create Room
 app.post("/rooms", authenticateUser, async (req: AuthRequest, res: Response): Promise<void> => {
   const { name } = req.body;
 
@@ -411,6 +411,7 @@ app.post("/rooms", authenticateUser, async (req: AuthRequest, res: Response): Pr
     const room = await prisma.room.create({ data: { name } });
     res.status(201).json(room);
   } catch (error) {
+    console.error("❌ Error creating room:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       res.status(400).json({ error: "A room with this name already exists" });
       return;
@@ -419,47 +420,26 @@ app.post("/rooms", authenticateUser, async (req: AuthRequest, res: Response): Pr
   }
 });
 
-// Get All Rooms
 app.get("/rooms", async (req: Request, res: Response): Promise<void> => {
   try {
     const rooms = await prisma.room.findMany({ orderBy: { createdAt: "desc" } });
     res.json(rooms);
   } catch (error) {
+    console.error("❌ Error fetching rooms:", error);
     res.status(500).json({ error: "Error fetching rooms" });
   }
 });
-
-// Get Room by ID
-app.get("/rooms/:roomId", async (req: Request, res: Response): Promise<void> => {
-  const { roomId } = req.params;
-
-  try {
-    const room = await prisma.room.findUnique({
-      where: { id: roomId },
-      include: {
-        messages: {
-          include: { sender: { select: { id: true, username: true } } },
-          orderBy: { createdAt: "asc" },
-        },
-      },
-    });
-
-    if (!room) {
-      res.status(404).json({ error: "Room not found" });
-      return;
-    }
-
-    res.json(room);
-  } catch (error) {
-    res.status(500).json({ error: "Error fetching room details" });
-  }
-});
-
-// WebSocket Events
 io.on("connection", (socket: Socket) => {
   console.log(`✅ A user connected: ${socket.id}`);
 
-  socket.on("joinRoom", async ({ roomId, userId }: { roomId: string; userId: string }) => {
+  const userId = socket.data.userId;
+
+  socket.on("joinRoom", async ({ roomId }: { roomId: string }) => {
+    if (!roomId || !userId) {
+      console.error("❌ joinRoom: Missing roomId or userId");
+      return;
+    }
+
     socket.join(roomId);
     console.log(`📌 User ${userId} joined room: ${roomId}`);
 
@@ -472,28 +452,34 @@ io.on("connection", (socket: Socket) => {
 
       socket.emit("previousMessages", messages);
     } catch (error) {
-      console.error("Error fetching messages:", error);
+      console.error("❌ Error fetching messages:", error);
     }
   });
 
-  socket.on("sendMessage", async ({ roomId, senderId, text }: { roomId: string; senderId: string; text: string }) => {
-    console.log(`📩 Message in Room ${roomId}: ${text}`);
+  socket.on("sendMessage", async ({ roomId, text }: { roomId: string; text: string }) => {
+    if (!roomId || !userId || !text) {
+      console.error("❌ sendMessage: Missing required fields", { roomId, userId, text });
+      socket.emit("messageError", { error: "All fields are required" });
+      return;
+    }
+
+    console.log(`📩 Message in Room ${roomId} from User ${userId}: ${text}`);
 
     try {
       const savedMessage = await prisma.message.create({
-        data: { roomId, senderId, text },
+        data: { roomId, senderId: userId, text },
         include: { sender: { select: { id: true, username: true } } },
       });
 
       io.to(roomId).emit("receiveMessage", savedMessage);
     } catch (error) {
-      console.error("Error saving message:", error);
+      console.error("❌ Error saving message:", error);
       socket.emit("messageError", { error: "Failed to save message" });
     }
   });
 
-  socket.on("typing", ({ roomId, username }: { roomId: string; username: string }) => {
-    socket.to(roomId).emit("userTyping", { username });
+  socket.on("typing", ({ roomId }: { roomId: string }) => {
+    socket.to(roomId).emit("userTyping", { userId });
   });
 
   socket.on("stopTyping", ({ roomId }: { roomId: string }) => {

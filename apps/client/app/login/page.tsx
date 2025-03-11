@@ -22,7 +22,7 @@ export default function Login() {
     try {
       const data = await loginUser(email, password);
       login(data.token, data.userId, data.username);
-      router.push('/rooms');
+      router.push('/room');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
