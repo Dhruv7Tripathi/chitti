@@ -24,7 +24,6 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       return;
     }
 
-    // Create socket connection when authenticated
     const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
     newSocket.on('connect', () => {

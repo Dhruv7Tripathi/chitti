@@ -295,6 +295,8 @@
 // server.listen(PORT, () => {
 //   console.log(`🚀 Server running at http://localhost:${PORT}`);
 // });
+
+
 import express, { Request, Response, NextFunction } from "express";
 import http from "http";
 import { Server, Socket } from "socket.io";
@@ -361,7 +363,7 @@ app.post("/register", async (req: Request, res: Response): Promise<void> => {
       res.status(400).json({ error: "Username or email already exists" });
       return;
     }
-    res.status(500).json({ error: "Error registering user" });
+    res.status(500).json({ error: "Error registering user", details: error });
   }
 });
 

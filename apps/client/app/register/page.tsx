@@ -1,6 +1,6 @@
 "use client"
 import { useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { registerUser } from '@/services/api';
 
 export default function Register() {
