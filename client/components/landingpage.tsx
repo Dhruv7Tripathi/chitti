@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-// import Navbar from "./navbar";
 import { useSession } from 'next-auth/react';
 import SignInButton from './SignInButton';
 import UserAccountNav from './UserAccountNav';

@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import SignInButton from './SignInButton';
 import UserAccountNav from './UserAccountNav';
-
-
 const Navbar = () => {
 
   const { data: session } = useSession();
@@ -33,7 +31,6 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-1">
-            {/* <Themetoggle /> */}
             {session?.user ? (
               <UserAccountNav user={session.user} />
             ) : (
