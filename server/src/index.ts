@@ -1,93 +1,91 @@
 import express from "express";
-import http from "http";
+import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import dotenv from "dotenv";
+import axios from "axios";
+dotenv.config();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
-
-const server = http.createServer(app);
+const server = createServer(app);
 const io = new Server(server, {
   cors: { origin: "*" },
 });
 
+app.use(cors());
+app.use(express.json());
 
 io.on("connection", (socket) => {
-  console.log(`✅ A user connected: ${socket.id}`);
+  const { userId, username } = socket.handshake.query;
 
-  //   socket.on("joinRoom", async (roomName) => {
-  //     if (!roomName) {
-  //       console.error("❌ Room name is undefined!");
-  //       return;
-  //     }
+  if (userId && username) {
+    console.log(`User connected: ${username} (ID: ${userId})`);
+    socket.emit("connected");
+  } else {
+    console.log("User connected without ID or username");
+    return;
+  }
 
-  //     socket.join(roomName);
-  //     console.log(`📌 User ${socket.id} joined room: ${roomName}`);
+  socket.on("join-room", ({ roomId }) => {
+    if (roomId && userId && username) {
+      socket.join(roomId);
+      console.log(`${username} joined room: ${roomId} (ID: ${userId})`);
+      io.to(roomId).emit("user-joined", `${username} has joined the room.`);
+    } else {
+      console.log("Room ID, User ID, or Username is missing");
+    }
+  });
 
-  //     // const room = await prisma.room.findUnique({
-  //     //   where: { name: roomName },
-  //     // });
+  socket.on("typing", ({ roomId, senderName }) => {
+    socket.to(roomId).emit("user-typing", { senderName });
+  });
 
-  //     // if (!room) {
-  //     //   console.error(`❌ Room ${roomName} does not exist`);
-  //     //   return;
-  //     // }
+  socket.on("stop-typing", ({ roomId, senderName }) => {
+    socket.to(roomId).emit("user-stopped-typing", { senderName });
+  });
 
-  //     // const messages = await prisma.message.findMany({
-  //     //   where: { roomId: room.id },
-  //     //   orderBy: { createdAt: "asc" },
-  //     // });
+  socket.on("send-message", async ({ message, roomId, }) => {
+    try {
+      if (message && userId && roomId) {
+        await axios.post(`$ http:localhost:3000/api/messages`, {
+          text: message,
+          senderId: userId,
+          sender: username,
+          roomId,
+        });
+        const createdAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
-  //     // socket.emit("previousMessages", messages);
-  //   });
+        io.to(roomId).emit("receive-message", {
+          senderId: userId,
+          senderName: username,
+          message,
+          createdAt,
+        });
+        console.log(`Message sent from ${username} to ${roomId}: ${message}`);
+      } else {
+        console.log("Message, User ID, or Receiver ID is missing");
+      }
+    } catch (err) {
+      console.error("Error sending message:", err);
+    }
+  });
 
-  //   socket.on("sendMessage", async ({ roomName, message, senderId }) => {
-  //     if (!roomName || !senderId || !message) {
-  //       console.error("❌ Invalid message data received:", { roomName, senderId, message });
-  //       return;
-  //     }
+  socket.on("clear-chat", ({ roomId }) => {
+    socket.to(roomId).emit("chat-cleared");
+  });
 
-  //     console.log(`📩 Message in Room ${roomName}: ${message}`);
 
-  //     try {
-  //       // const room = await prisma.room.findUnique({
-  //       //   where: { name: roomName },
-  //       // });
+  socket.on("disconnect", () => {
+    //   // onlineUsers.forEach((user, key) => {
+    //   //   if (user.socketId === socket.id) {
+    //   //     onlineUsers.delete(key);
+    //   //   }
+    //   });
 
-  //       // if (!room) {
-  //       //   console.error(`❌ Room ${roomName} not found`);
-  //       //   return;
-  //       // }
-
-  //       // const sender = await prisma.user.findUnique({
-  //       //   where: { id: senderId },
-  //       // });
-
-  //       if (!sender) {
-  //         console.error(`❌ Sender with ID ${senderId} not found`);
-  //         return;
-  //       }
-
-  //       const savedMessage = await prisma.message.create({
-  //         data: {
-  //           text: message,
-  //           sender: { connect: { id: senderId } },
-  //           room: { connect: { id: room.id } },
-  //         },
-  //       });
-
-  //       io.to(roomName).emit("receiveMessage", savedMessage);
-  //     } catch (error) {
-  //       console.error("🔥 Error sending message:", error);
-  //     }
-  //   });
-
-  //   socket.on("disconnect", () => {
-  //     console.log(`❌ User disconnected: ${socket.id}`);
-  //   });
+    console.log(`Disconnected: ${socket.id}`);
+  });
 });
 
-// server.listen(4000, () => {
-//   console.log("🚀 Server running at http://localhost:4000");
-// });
+
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => console.log(`server is running on post ${PORT}`));
