@@ -16,6 +16,15 @@ model User {
   provider  Provider
 }
 
+model Message {
+  id        String   @id @default(uuid())
+  text      String
+  senderId  String
+  sender    String
+  roomId    String
+  createdAt DateTime @default(now())
+}
+
 enum Provider {
   Google
 }
