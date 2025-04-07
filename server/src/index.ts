@@ -36,12 +36,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("typing", ({ roomId, senderName }) => {
-    socket.to(roomId).emit("user-typing", { senderName });
+  socket.on("typing", ({ roomId, sender }) => {
+    socket.to(roomId).emit("user-typing", { sender });
   });
 
-  socket.on("stop-typing", ({ roomId, senderName }) => {
-    socket.to(roomId).emit("user-stopped-typing", { senderName });
+  socket.on("stop-typing", ({ roomId, sender }) => {
+    socket.to(roomId).emit("user-stopped-typing", { sender });
   });
 
   socket.on("send-message", async ({ message, roomId, }) => {
