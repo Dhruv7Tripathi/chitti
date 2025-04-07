@@ -93,14 +93,14 @@ export default function ChatSidebar() {
     <div className="w-80 border-r border-gray-800 flex flex-col h-full">
       <div className="p-4 flex justify-between items-center border-b border-gray-800">
         <h2 className="text-xl font-bold">Chats</h2>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
             <Edit size={20} />
           </Button>
           <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
             <Menu size={20} />
           </Button>
-        </div>
+        </div> */}
       </div>
 
       <div className="p-2">

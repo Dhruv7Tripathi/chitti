@@ -19,7 +19,7 @@
 //   );
 // }
 import "../globals.css";
-import ChatSidebar from "@/components/chatsidebar";
+// import ChatSidebar from "@/components/chatsidebar";
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <div>
       <div>
-        <ChatSidebar />
+        {/* <ChatSidebar /> */}
         <main className="">{children}</main>
         {/* <Rightbar /> */}
       </div>

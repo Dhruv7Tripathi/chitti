@@ -1,93 +1,39 @@
-// "use client";
-// import { useState } from "react";
-// // import { useSocket } from "../../hooks/useSocket";
-
-// export default function ChatPage() {
-//   const [message, setMessage] = useState("");
-//   const [room, setRoom] = useState("general");
-//   const [username] = useState("User" + Math.floor(Math.random() * 1000));
-//   // const { messages, sendMessage } = useSocket(room);
-
-//   const handleSend = () => {
-//     if (message.trim()) {
-//       // sendMessage(message, username);
-//       setMessage("");
-//     }
-//   };
-
-//   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-//     if (e.key === "Enter") {
-//       handleSend();
-//     }
-//   };
-
-//   return (
-//     <div className="flex flex-col h-screen bg-gray-50">
-//       <div className="bg-indigo-600 p-4 shadow-md">
-//         <div className="max-w-3xl mx-auto flex justify-between items-center">
-//           <h1 className="text-white text-xl font-bold">Chat Room</h1>
-//           <div className="flex items-center">
-//             <label className="text-indigo-100 mr-2">Room:</label>
-//             <select
-//               onChange={(e) => setRoom(e.target.value)}
-//               value={room}
-//               className="bg-indigo-700 text-white rounded px-3 py-1 outline-none focus:ring-2 focus:ring-indigo-300"
-//             >
-//               <option value="general">General</option>
-//               <option value="tech">Tech</option>
-//             </select>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="flex-1 overflow-hidden max-w-3xl w-full mx-auto p-4">
-//         <div className="flex flex-col h-full rounded-lg shadow-lg bg-white">
-//           {/* <div className="flex-1 overflow-y-auto p-4 space-y-2">
-//             {messages.map((msg, index) => (
-//               <div
-//                 key={index}
-//                 className={`p-3 rounded-lg max-w-xs ${msg.sender === username
-//                   ? "ml-auto bg-indigo-500 text-white"
-//                   : "mr-auto bg-gray-200 text-gray-800"
-//                   }`}
-//               >
-//                 <div className="text-xs mb-1 font-semibold">{msg.sender}</div>
-//                 <div>{msg.text}</div>
-//               </div>
-//             ))}
-//           </div> */}
-
-//           <div className="border-t p-3">
-//             <div className="flex rounded-lg border overflow-hidden">
-//               <input
-//                 type="text"
-//                 value={message}
-//                 onChange={(e) => setMessage(e.target.value)}
-//                 onKeyDown={handleKeyDown}
-//                 placeholder="Type your message..."
-//                 className="flex-1 px-4 py-2 focus:outline-none"
-//               />
-//               <button
-//                 onClick={handleSend}
-//                 className="bg-indigo-600 text-white px-4 py-2 font-medium hover:bg-indigo-700 transition duration-150"
-//               >
-//                 Send
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
 import React from 'react'
+import ChatSidebar from '@/components/chatsidebar'
 
 const Room = () => {
   return (
-    <div>
-      hello
+    <div className="flex h-screen bg-black text-white">
+      {/* Sidebar */}
+      <ChatSidebar />
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
+        <div className="flex items-center space-x-4 p-6 bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300">
+          <svg
+            className="w-15 h-15 text-green-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            />
+          </svg>
+          <span className="text-5xl font-extrabold tracking-wide">Chitti</span>
+        </div>
+
+        <p className="text-gray-400 text-center max-w-md mt-6 leading-relaxed">
+          Use <span className="text-white font-semibold">Chitti</span> to chit chat with your friends and family.
+          Send and receive messages without keeping your phone online.
+        </p>
+      </div>
     </div>
   )
 }
 
 export default Room
+
