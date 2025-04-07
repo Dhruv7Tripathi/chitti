@@ -1,16 +1,16 @@
 "use client";
 import { useState } from "react";
-import { useSocket } from "../../hooks/useSocket";
+// import { useSocket } from "../../hooks/useSocket";
 
 export default function ChatPage() {
   const [message, setMessage] = useState("");
   const [room, setRoom] = useState("general");
   const [username] = useState("User" + Math.floor(Math.random() * 1000));
-  const { messages, sendMessage } = useSocket(room);
+  // const { messages, sendMessage } = useSocket(room);
 
   const handleSend = () => {
     if (message.trim()) {
-      sendMessage(message, username);
+      // sendMessage(message, username);
       setMessage("");
     }
   };
@@ -42,7 +42,7 @@ export default function ChatPage() {
 
       <div className="flex-1 overflow-hidden max-w-3xl w-full mx-auto p-4">
         <div className="flex flex-col h-full rounded-lg shadow-lg bg-white">
-          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          {/* <div className="flex-1 overflow-y-auto p-4 space-y-2">
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -55,7 +55,7 @@ export default function ChatPage() {
                 <div>{msg.text}</div>
               </div>
             ))}
-          </div>
+          </div> */}
 
           <div className="border-t p-3">
             <div className="flex rounded-lg border overflow-hidden">
