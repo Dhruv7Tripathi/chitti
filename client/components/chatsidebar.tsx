@@ -1,20 +1,17 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Edit, Menu } from "lucide-react"
+import { Search } from "lucide-react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import axios from "axios"
+import { Button } from "@/components/ui/button"
 
 interface User {
   id: string
   name: string
-  lastMessage: string
-  time: string
-  unreadCount?: number
   image: string
 }
 
@@ -41,17 +38,22 @@ export default function ChatSidebar() {
 
       fetchUsers()
     } else if (status === "unauthenticated") {
-      router.push('/login')
+      router.push("/login")
     }
   }, [status, router])
 
   const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
+    user.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleChatSelect = (userId: string) => {
-    router.push(`/chat/${userId}`)
+  const handleChat = (selectedUserId: string) => {
+    const currentUserId = session?.user?.id
+    if (!currentUserId) {
+      router.push("/signin")
+    } else {
+      const roomId = [currentUserId, selectedUserId].sort().join("$")
+      router.push(`/room/${roomId}`)
+    }
   }
 
   const renderContent = () => {
@@ -67,24 +69,17 @@ export default function ChatSidebar() {
       <div
         key={user.id}
         className="flex items-center p-3 hover:bg-gray-800 cursor-pointer"
-        onClick={() => handleChatSelect(user.id)}
+        onClick={() => handleChat(user.id)}
       >
         <Avatar className="h-10 w-10 mr-3">
           <AvatarImage src={user.image} alt={user.name} />
-          <AvatarFallback className="bg-gray-700">{user.name.charAt(0)}</AvatarFallback>
+          <AvatarFallback className="bg-gray-700">
+            {user.name.charAt(0)}
+          </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between">
-            <span className="font-medium truncate">{user.name}</span>
-            <span className="text-xs text-gray-400">{user.time}</span>
-          </div>
-          <p className="text-sm text-gray-400 truncate">{user.lastMessage}</p>
+          <span className="font-medium truncate">{user.name}</span>
         </div>
-        {user.unreadCount && user.unreadCount > 0 && (
-          <div className="ml-2 bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-            {user.unreadCount}
-          </div>
-        )}
       </div>
     ))
   }
@@ -93,14 +88,6 @@ export default function ChatSidebar() {
     <div className="w-80 border-r border-gray-800 flex flex-col h-full">
       <div className="p-4 flex justify-between items-center border-b border-gray-800">
         <h2 className="text-xl font-bold">Chats</h2>
-        {/* <div className="flex gap-2">
-          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
-            <Edit size={20} />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
-            <Menu size={20} />
-          </Button>
-        </div> */}
       </div>
 
       <div className="p-2">
