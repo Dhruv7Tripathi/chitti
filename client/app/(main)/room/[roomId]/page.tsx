@@ -99,6 +99,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import useSocket from '@/hooks/useSocket'
 import { useSession } from 'next-auth/react'
+import ChatSidebar from '@/components/chatsidebar'
 
 interface Message {
   content: string
@@ -123,9 +124,8 @@ const ChatRoom = () => {
   const [input, setInput] = useState('')
   const [receiver, setReceiver] = useState<User | null>(null)
 
-  // Fetch receiver data
   useEffect(() => {
-    const getReceiver = async () => {
+    const fetchReceiver = async () => {
       try {
         const res = await fetch(`/api/user/${receiverId}`)
         if (res.ok) {
@@ -133,24 +133,25 @@ const ChatRoom = () => {
           setReceiver(data)
         }
       } catch (error) {
-        console.error('Error fetching user:', error)
+        console.error('Error fetching receiver:', error)
       }
     }
 
-    if (receiverId) getReceiver()
+    if (receiverId) fetchReceiver()
   }, [receiverId])
 
-  // Socket setup
   useEffect(() => {
     if (socket && senderId && receiverId) {
       socket.emit('joinRoom', { roomId: receiverId })
 
-      socket.on('message', (msg: Message) => {
+      const handleMessage = (msg: Message) => {
         setMessages(prev => [...prev, msg])
-      })
+      }
+
+      socket.on('message', handleMessage)
 
       return () => {
-        socket.off('message')
+        socket.off('message', handleMessage)
       }
     }
   }, [socket, senderId, receiverId])
@@ -158,59 +159,68 @@ const ChatRoom = () => {
   const sendMessage = () => {
     if (!input.trim() || !socket || !senderId || !receiverId) return
 
-    const msg: Message = {
+    const message: Message = {
       content: input,
       senderId,
       receiverId: receiverId as string,
     }
 
-    socket.emit('sendMessage', msg)
-    setMessages(prev => [...prev, msg])
+    socket.emit('sendMessage', message)
+    setMessages(prev => [...prev, message])
     setInput('')
   }
 
   return (
-    <div className="flex flex-col h-screen bg-black text-white">
-      <div className="flex items-center space-x-4 px-6 py-4 bg-gray-900 shadow">
-        {receiver?.image ? (
-          <img
-            src={receiver.image}
-            alt={receiver.name}
-            className="w-10 h-10 rounded-full"
+    <div className="flex h-screen bg-black text-white">
+      <ChatSidebar />
+
+      <div className="flex flex-col flex-1">
+        {/* Header */}
+        <div className="flex items-center space-x-4 px-6 py-4 bg-gray-900 shadow">
+          {receiver?.image ? (
+            <img
+              src={receiver.image}
+              alt={receiver.name}
+              className="w-10 h-10 rounded-full"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gray-700" />
+          )}
+          <div className="text-xl font-semibold">{receiver?.name || 'User'}</div>
+        </div>
+
+        {/* Chat Messages */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col space-y-2">
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`max-w-xs p-3 rounded-lg ${msg.senderId === senderId
+                  ? 'bg-green-600 self-end text-right'
+                  : 'bg-gray-700 self-start text-left'
+                }`}
+            >
+              <p className="text-sm">{msg.content}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4 bg-gray-800 flex items-center space-x-2">
+          <input
+            type="text"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            className="flex-1 p-2 rounded bg-gray-900 border border-gray-700 focus:outline-none"
+            placeholder="Type a message..."
           />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-gray-700" />
-        )}
-        <div className="text-xl font-semibold">{receiver?.name || 'User'}</div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`max-w-xs p-3 rounded-lg ${msg.senderId === senderId
-                ? 'bg-green-600 self-end ml-auto text-right'
-                : 'bg-gray-700 text-left'
-              }`}
+          <button
+            type="button"
+            onClick={sendMessage}
+            className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
           >
-            <p className="text-sm">{msg.content}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="p-4 bg-gray-800 flex items-center space-x-2">
-        <input
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          className="flex-1 p-2 rounded bg-gray-900 border border-gray-700 focus:outline-none"
-          placeholder="Type a message..."
-        />
-        <button
-          onClick={sendMessage}
-          className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
-        >
-          Send
-        </button>
+            Send
+          </button>
+        </div>
       </div>
     </div>
   )

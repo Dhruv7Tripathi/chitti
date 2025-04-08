@@ -85,7 +85,7 @@ export default function ChatSidebar() {
   }
 
   return (
-    <div className="w-80 border-r border-gray-800 flex flex-col h-full">
+    <div className="w-80 border-r  h-screen bg-black text-white flex flex-col ">
       <div className="p-4 flex justify-between items-center border-b border-gray-800">
         <h2 className="text-xl font-bold">Chats</h2>
       </div>
