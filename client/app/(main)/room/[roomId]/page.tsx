@@ -6,10 +6,10 @@ import useSocket from '@/hooks/useSocket'
 import { useSession } from 'next-auth/react'
 import ChatSidebar from '@/components/chatsidebar'
 import axios from 'axios'
-
+import useRequireAuth from '@/hooks/useRequireAuth'
 interface Message {
-  senderName: string
-  content: string
+  sender: string
+  text: string
   createdAt: string
 }
 
@@ -22,6 +22,7 @@ interface User {
 const ChatRoom = () => {
   const params = useParams()
   const router = useRouter()
+  useRequireAuth();
 
   const roomId = typeof params.roomId === 'string' ? params.roomId : Array.isArray(params.roomId) ? params.roomId[0] : ''
   const userId = typeof params.id === 'string' ? params.id : Array.isArray(params.id) ? params.id[0] : ''
@@ -34,7 +35,6 @@ const ChatRoom = () => {
   const [input, setInput] = useState('')
   const [user, setUser] = useState<User | null>(null)
 
-  // Fetch user data
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -51,13 +51,12 @@ const ChatRoom = () => {
     }
   }, [userId, router])
 
-  // Handle socket events
   useEffect(() => {
     if (socket && roomId && session?.user?.name) {
       socket.emit("join-room", { roomId })
 
-      const handleMessage = ({ senderName, message, createdAt }: any) => {
-        setMessages(prev => [...prev, { senderName, content: message, createdAt }])
+      const handleMessage = ({ sender, message, createdAt }: any) => {
+        setMessages(prev => [...prev, { sender, text: message, createdAt }])
       }
 
       socket.on("receive-message", handleMessage)
@@ -70,7 +69,6 @@ const ChatRoom = () => {
     }
   }, [socket, roomId, session?.user?.name])
 
-  // Optional: Log when socket connects
   useEffect(() => {
     if (socket) {
       socket.on("connected", () => {
@@ -97,8 +95,8 @@ const ChatRoom = () => {
     setMessages(prev => [
       ...prev,
       {
-        senderName: 'You',
-        content: input.trim(),
+        sender: 'You',
+        text: input.trim(),
         createdAt: new Date().toISOString(),
       }
     ])
@@ -118,7 +116,6 @@ const ChatRoom = () => {
       <ChatSidebar />
 
       <div className="flex flex-col flex-1">
-        {/* Header */}
         <div className="flex items-center space-x-4 px-6 py-4 bg-gray-900 shadow">
           {user?.image ? (
             <img src={user.image} alt={user.name || 'User'} className="w-10 h-10 rounded-full" />
@@ -128,22 +125,20 @@ const ChatRoom = () => {
           <div className="text-xl font-semibold">{user?.name || 'User'}</div>
         </div>
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col space-y-2">
           {messages.map((msg, index) => (
             <div
               key={index}
-              className={`max-w-xs p-3 rounded-lg ${msg.senderName === 'You' ? 'bg-green-600 self-end text-right' : 'bg-gray-700 self-start text-left'
+              className={`max-w-xs p-3 rounded-lg ${msg.sender === 'You' ? 'bg-green-600 self-end text-right' : 'bg-gray-700 self-start text-left'
                 }`}
             >
-              <p className="text-sm font-bold">{msg.senderName}</p>
-              <p className="text-sm">{msg.content}</p>
+              <p className="text-sm font-bold">{msg.sender}</p>
+              <p className="text-sm">{msg.text}</p>
               <p className="text-xs text-gray-400 mt-1">{new Date(msg.createdAt).toLocaleTimeString()}</p>
             </div>
           ))}
         </div>
 
-        {/* Input */}
         <div className="p-4 bg-gray-800 flex items-center space-x-2">
           <input
             type="text"
