@@ -76,12 +76,6 @@ io.on("connection", (socket) => {
 
 
   socket.on("disconnect", () => {
-    //   // onlineUsers.forEach((user, key) => {
-    //   //   if (user.socketId === socket.id) {
-    //   //     onlineUsers.delete(key);
-    //   //   }
-    //   });
-
     console.log(`Disconnected: ${socket.id}`);
   });
 });
