@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { useSession } from "next-auth/react";
 
-export const useSocket = (room: string) => {
+export const useSocket = () => {
   const { data: session } = useSession();
   const [socket, setSocket] = useState<Socket | null>(null);
 

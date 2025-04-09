@@ -1,164 +1,357 @@
-'use client'
+"use client";
+import { useState, useEffect, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useSocket } from "@/hooks/useSocket";
+import { useSession } from "next-auth/react";
+import axios from "axios";
+import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import TypingBubble from "@/components/typingbubble";
+import ChatDropDownMenu from "@/components/chatdropdownmenu";
+import { ChatSkeleton, HeaderSkeleton, MessagesSkeleton } from "@/components/loadingskeletons";
+import { NoMessagesBlock } from "@/components/status";
+import { ChatHeader } from "@/components/chatheader";
+import ChatInput from "@/components/chatinput";
+import MessageBubble from "@/components/messagebubble";
+import useRequireAuth from "@/hooks/useRequireAuth";
+import ChatSidebar from "@/components/chatsidebar";
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import useSocket from '@/hooks/useSocket'
-import { useSession } from 'next-auth/react'
-import ChatSidebar from '@/components/chatsidebar'
-import axios from 'axios'
-import useRequireAuth from '@/hooks/useRequireAuth'
-interface Message {
-  sender: string
-  text: string
-  createdAt: string
-}
-
-interface User {
-  id: string
-  name: string
-  image: string
-}
-
-const ChatRoom = () => {
-  const params = useParams()
-  const router = useRouter()
+export default function ChatRoom() {
   useRequireAuth();
-
-  const roomId = typeof params.roomId === 'string' ? params.roomId : Array.isArray(params.roomId) ? params.roomId[0] : ''
-  const userId = typeof params.id === 'string' ? params.id : Array.isArray(params.id) ? params.id[0] : ''
-
-  const { data: session } = useSession()
-  const socket = useSocket(userId)
-
-  const senderId = session?.user?.id
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
-  const [user, setUser] = useState<User | null>(null)
+  const router = useRouter();
+  const socket = useSocket();
+  const { roomId } = useParams();
+  const { data: session, status } = useSession();
+  const [receiver, setReceiver] = useState();
+  const [receiverImage, setReceiverImage] = useState();
+  const [hasMounted, setHasMounted] = useState(false);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isOnline, setIsOnline] = useState(false);
+  const [messages, setMessages] = useState<{ sender: string; text: string; createdAt: string }[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUser, setTypingUser] = useState<string | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [viewportHeight, setViewportHeight] = useState("100vh");
+  const [socketConnected, setSocketConnected] = useState(false);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const [id1, id2] = decodeURIComponent(
+      Array.isArray(roomId) ? roomId.join("") : roomId ?? ""
+    ).split("$");
+
+    const fetchUserById = async (userId: string) => {
       try {
-        const res = await axios.get(`/api/users/${userId}`)
-        setUser(res.data)
+        const response = await axios.get(`/api/users/${userId}`);
+        return response.data;
       } catch (error) {
-        console.error('Error fetching user:', error)
-        router.push('/signin')
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          console.warn("User not found, redirecting to sign in...");
+          router.push("/signin");
+        } else {
+          if (error instanceof Error) {
+            console.error("Error fetching user data:", error.message);
+          } else {
+            console.error("Error fetching user data:", error);
+          }
+        }
+        return null;
       }
-    }
+    };
 
-    if (userId) {
-      fetchUser()
-    }
-  }, [userId, router])
+    const fetchMessages = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(
+          `/api/messages?roomId=${encodeURIComponent(
+            Array.isArray(roomId) ? roomId.join("") : roomId || ""
+          )}`
+        );
+        const data = response.data;
+        setMessages(
+          data.map(
+            (msg: {
+              sender: string;
+              text: string;
+              createdAt: Date;
+            }) => ({
+              sender: msg.sender,
+              text: msg.text,
+              createdAt: new Date(msg.createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              }),
+            })
+          )
+        );
+        scrollToBottom();
+
+        const currentUserId = session?.user?.id;
+        if (status === "loading") return;
+
+        if (!currentUserId) {
+          router.push("/signin");
+          return;
+        }
+
+        const user1 = await fetchUserById(id1);
+        const user2 = await fetchUserById(id2);
+
+        if (!user1 || !user2) router.push("/signin");
+
+        const receiverName =
+          currentUserId === id1
+            ? user2?.name ?? "Loading.."
+            : user1?.name ?? "Loading..";
+        const receiverImage =
+          currentUserId === id1 ? user2?.image ?? "" : user1?.image ?? "";
+
+        setReceiver(receiverName);
+        setReceiverImage(receiverImage);
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error("Error fetching messages:", error.message);
+        } else {
+          console.error("Error fetching messages:", error);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessages();
+  }, [roomId, router, session?.user?.id, status]);
+
 
   useEffect(() => {
-    if (socket && roomId && session?.user?.name) {
-      socket.emit("join-room", { roomId })
+    if (socket && roomId) {
+      socket.emit("join-room", { roomId });
 
-      const handleMessage = ({ sender, message, createdAt }: any) => {
-        setMessages(prev => [...prev, { sender, text: message, createdAt }])
-      }
+      socket.on("receive-message", ({ sender, message, createdAt }) => {
+        const displayName =
+          sender === session?.user.name
+            ? session?.user.name || "You"
+            : sender;
+        setMessages((prev) => [
+          ...prev,
+          { sender: displayName, text: message, createdAt },
+        ]);
+      });
 
-      socket.on("receive-message", handleMessage)
-      socket.on("chat-cleared", () => setMessages([]))
+      socket.on("user-typing", ({ sender }) => {
+        setTypingUser(sender);
+        setIsTyping(true);
+      });
+
+      socket.on("user-stopped-typing", () => {
+        setTypingUser(null);
+        setIsTyping(false);
+      });
+
+      socket.on("online-users", (users) => {
+        const isOnline = users.some(
+          (user: { username: string }) => user.username === receiver
+        );
+        setIsOnline(isOnline);
+      });
+
+      socket.on("chat-cleared", () => {
+        setMessages([]);
+      });
 
       return () => {
-        socket.off("receive-message", handleMessage)
-        socket.off("chat-cleared")
-      }
+        socket.off("receive-message");
+        socket.off("user-typing");
+        socket.off("user-stopped-typing");
+      };
     }
-  }, [socket, roomId, session?.user?.name])
+  }, [socket, roomId, session?.user.name, receiver]);
+
+  const handleTyping = () => {
+    socket?.emit("typing", {
+      roomId,
+      sender: session?.user?.name,
+    });
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      socket?.emit("stop-typing", {
+        roomId,
+        sender: session?.user?.name,
+      });
+    }, 1000);
+  };
+
+  useEffect(() => {
+    const updateViewportHeight = () => {
+      setViewportHeight(`${window.innerHeight}px`)
+    }
+
+    updateViewportHeight()
+
+    window.addEventListener("resize", updateViewportHeight)
+    window.addEventListener("orientationchange", updateViewportHeight)
+
+    return () => {
+      window.removeEventListener("resize", updateViewportHeight)
+      window.removeEventListener("orientationchange", updateViewportHeight)
+    }
+  }, [])
+
+  const clearChat = async () => {
+    try {
+      await axios.delete(`/api/messages`, { data: { roomId } });
+      socket?.emit("clear-chat", { roomId });
+      setMessages([]);
+      toast({
+        description: "Chat cleared succesfully",
+      });
+    } catch (error) {
+      console.error("Error clearing chat:", error);
+    }
+  };
 
   useEffect(() => {
     if (socket) {
       socket.on("connected", () => {
-        console.log("Socket connection established")
-      })
+        setSocketConnected(true);
+        console.log("Socket connection established");
+      });
 
       return () => {
-        socket.off("connected")
-      }
+        socket.off("connected");
+      };
     }
-  }, [socket])
+  }, [socket]);
 
-  const sendMessage = () => {
-    if (!input.trim() || !socket || !senderId || !userId || !session?.user.name) return
+  const sendMessage = async () => {
+    if (!message.trim()) return;
+    const sender = session?.user.name || "Anonymous";
 
-    const newMessage = {
-      message: input.trim(),
+    if (!socketConnected) {
+      console.log("Waiting for socket to be ready...");
+      setTimeout(() => sendMessage(), 100);
+      return;
+    }
+
+    socket?.emit("send-message", {
+      message,
+      sender,
       roomId,
-      sender: session.user.name,
+    });
+
+    setMessage("");
+    console.log("Message sent:", message);
+  };
+
+
+  const scrollToBottom = (smooth: boolean = true) => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: smooth ? "smooth" : "auto",
+    });
+  };
+
+  useEffect(() => {
+    scrollToBottom(false);
+  }, [loading]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
+
+  const handleKeyDown = (e: { key: string }) => {
+    if (e.key === "Enter") {
+      sendMessage();
     }
+  };
 
-    socket.emit("sendmessage", newMessage)
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
-    setMessages(prev => [
-      ...prev,
-      {
-        sender: 'You',
-        text: input.trim(),
-        createdAt: new Date().toISOString(),
-      }
-    ])
-
-    setInput('')
+  if (!hasMounted) {
+    return <ChatSkeleton />;
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
-    }
+  if (!session) {
+    return <ChatSkeleton />;
   }
 
   return (
-    <div className="flex h-screen bg-black text-white">
-      <ChatSidebar />
-
-      <div className="flex flex-col flex-1">
-        <div className="flex items-center space-x-4 px-6 py-4 bg-gray-900 shadow">
-          {user?.image ? (
-            <img src={user.image} alt={user.name || 'User'} className="w-10 h-10 rounded-full" />
+    <Sheet>
+      <div className="flex flex-col bg-neutral-950 overflow-hidden" style={{ height: viewportHeight }}>
+        <div className="p-4 border-b border-neutral-900 flex items-center justify-between bg-neutral-950 shadow-sm z-10">
+          {loading ? (
+            <HeaderSkeleton />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-gray-700" />
+            <ChatHeader
+              isOnline={isOnline}
+              receiverImage={receiverImage || ""}
+              receiver={receiver || ""} />
           )}
-          <div className="text-xl font-semibold">{user?.name || 'User'}</div>
+          <ChatDropDownMenu clearChat={clearChat} />
         </div>
-
-        <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col space-y-2">
-          {messages.map((msg, index) => (
-            <div
-              key={index}
-              className={`max-w-xs p-3 rounded-lg ${msg.sender === 'You' ? 'bg-green-600 self-end text-right' : 'bg-gray-700 self-start text-left'
-                }`}
-            >
-              <p className="text-sm font-bold">{msg.sender}</p>
-              <p className="text-sm">{msg.text}</p>
-              <p className="text-xs text-gray-400 mt-1">{new Date(msg.createdAt).toLocaleTimeString()}</p>
+        <div className="flex-1 overflow-hidden relative">
+          <CustomScrollArea className="h-full talko-pattern bg-neutral-900">
+            <div className="space-y-4 py-2 pb-2">
+              {loading ? (
+                <MessagesSkeleton />
+              ) : messages.length === 0 ? (
+                <NoMessagesBlock />
+              ) : (
+                messages.map((msg, idx) => (
+                  <MessageBubble
+                    key={idx}
+                    text={msg.text}
+                    createdAt={msg.createdAt}
+                    isSender={msg.sender === session?.user.name}
+                  />
+                ))
+              )}
+              {isTyping && typingUser && (
+                <TypingBubble />
+              )}
+              <div ref={messagesEndRef} />
             </div>
-          ))}
+          </CustomScrollArea>
         </div>
-
-        <div className="p-4 bg-gray-800 flex items-center space-x-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyPress}
-            className="flex-1 p-2 rounded bg-gray-900 border border-gray-700 focus:outline-none"
-            placeholder="Type a message..."
-          />
-          <button
-            type="button"
-            onClick={sendMessage}
-            className="bg-black px-4 py-2 rounded hover:bg-gray-700 transition"
-          >
-            Send
-          </button>
-        </div>
+        <ChatInput
+          message={message}
+          setMessage={setMessage}
+          sendMessage={sendMessage}
+          handleTyping={handleTyping}
+          handleKeyDown={handleKeyDown}
+        />
       </div>
-    </div>
-  )
+      <SheetContent className="bg-neutral-950 text-white border-neutral-900 px-2 pr-4">
+        <SheetHeader>
+          <SheetTitle></SheetTitle>
+          <SheetDescription></SheetDescription>
+        </SheetHeader>
+        <CustomScrollArea className="h-full">
+          <ChatSidebar />
+        </CustomScrollArea>
+        <SheetFooter>
+          <SheetClose asChild></SheetClose>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
 }
 
-export default ChatRoom
+function toast(arg0: { description: string; }) {
+  throw new Error("Function not implemented.");
+}
