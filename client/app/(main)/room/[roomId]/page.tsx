@@ -35,7 +35,7 @@ export default function ChatRoom() {
   const [hasMounted, setHasMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState<boolean>(true);
-  const [isOnline, setIsOnline] = useState(false);
+  // const [isOnline, setIsOnline] = useState(false);
   const [messages, setMessages] = useState<{ sender: string; text: string; createdAt: string }[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isTyping, setIsTyping] = useState(false);
@@ -158,16 +158,16 @@ export default function ChatRoom() {
         setIsTyping(false);
       });
 
-      socket.on("online-users", (users) => {
-        const isOnline = users.some(
-          (user: { username: string }) => user.username === receiver
-        );
-        setIsOnline(isOnline);
-      });
+      // socket.on("online-users", (users) => {
+      //   const isOnline = users.some(
+      //     (user: { username: string }) => user.username === receiver
+      //   );
+      //   setIsOnline(isOnline);
+      // });
 
-      socket.on("chat-cleared", () => {
-        setMessages([]);
-      });
+      // socket.on("chat-cleared", () => {
+      //   setMessages([]);
+      // });
 
       return () => {
         socket.off("receive-message");
@@ -195,34 +195,34 @@ export default function ChatRoom() {
     }, 1000);
   };
 
-  useEffect(() => {
-    const updateViewportHeight = () => {
-      setViewportHeight(`${window.innerHeight}px`)
-    }
+  // useEffect(() => {
+  //   const updateViewportHeight = () => {
+  //     setViewportHeight(`${window.innerHeight}px`)
+  //   }
 
-    updateViewportHeight()
+  //   updateViewportHeight()
 
-    window.addEventListener("resize", updateViewportHeight)
-    window.addEventListener("orientationchange", updateViewportHeight)
+  //   window.addEventListener("resize", updateViewportHeight)
+  //   window.addEventListener("orientationchange", updateViewportHeight)
 
-    return () => {
-      window.removeEventListener("resize", updateViewportHeight)
-      window.removeEventListener("orientationchange", updateViewportHeight)
-    }
-  }, [])
+  //   return () => {
+  //     window.removeEventListener("resize", updateViewportHeight)
+  //     window.removeEventListener("orientationchange", updateViewportHeight)
+  //   }
+  // }, [])
 
-  const clearChat = async () => {
-    try {
-      await axios.delete(`/api/messages`, { data: { roomId } });
-      socket?.emit("clear-chat", { roomId });
-      setMessages([]);
-      toast({
-        description: "Chat cleared succesfully",
-      });
-    } catch (error) {
-      console.error("Error clearing chat:", error);
-    }
-  };
+  // const clearChat = async () => {
+  //   try {
+  //     await axios.delete(`/api/messages`, { data: { roomId } });
+  //     socket?.emit("clear-chat", { roomId });
+  //     setMessages([]);
+  //     toast({
+  //       description: "Chat cleared succesfully",
+  //     });
+  //   } catch (error) {
+  //     console.error("Error clearing chat:", error);
+  //   }
+  // };
 
   useEffect(() => {
     if (socket) {
@@ -298,11 +298,11 @@ export default function ChatRoom() {
             <HeaderSkeleton />
           ) : (
             <ChatHeader
-              isOnline={isOnline}
+              // isOnline={isOnline}
               receiverImage={receiverImage || ""}
               receiver={receiver || ""} />
           )}
-          <ChatDropDownMenu clearChat={clearChat} />
+          {/* <ChatDropDownMenu clearChat={clearChat} /> */}
         </div>
         <div className="flex-1 overflow-hidden relative">
           <CustomScrollArea className="h-full talko-pattern bg-neutral-900">
