@@ -43,7 +43,7 @@ export default function ChatRoom() {
   const [socketConnected, setSocketConnected] = useState(false);
 
   useEffect(() => {
-    if (status !== "authenticated") return; // ✅ Wait until session is ready
+    if (status !== "authenticated") return;
 
     const [id1, id2] = decodeURIComponent(
       Array.isArray(roomId) ? roomId.join("") : roomId ?? ""
@@ -51,9 +51,11 @@ export default function ChatRoom() {
 
     const fetchUserById = async (userId: string) => {
       try {
-        const response = await axios.get(`/api/users/${userId}`);
+        const response = await axios.get(`/api/userdetails/${userId}`);
         return response.data;
-      } catch (error) {
+      }
+
+      catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 404) {
           console.warn("User not found, redirecting to sign in...");
           router.push("/signin");

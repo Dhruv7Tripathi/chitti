@@ -62,7 +62,7 @@ export default function SignInPage() {
           <div className="w-full max-w-md space-y-8">
             <div>
 
-              <Image src="/talko1.png" width={500} height={500} alt="logo" className='h-12 w-12' />
+              <Image src="/p.jpg" width={500} height={500} alt="logo" className='h-12 w-12' />
               <h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground">See what&apos;s happening</h2>
               <p className="mt-2 text-sm text-muted-foreground">Join Talko today.</p>
             </div>
