@@ -8,15 +8,22 @@ dotenv.config();
 
 const app = express();
 const server = createServer(app);
+
 const io = new Server(server, {
-  cors: { origin: "*" },
+  cors: {
+    origin: process.env.NEXTAUTH_URL || "*",
+    credentials: true,
+  },
 });
 
 app.use(cors());
 app.use(express.json());
 
 io.on("connection", (socket) => {
-  const { userId, username } = socket.handshake.query;
+  const { userId, username } = socket.handshake.query as {
+    userId?: string;
+    username?: string;
+  };
 
   if (userId && username) {
     console.log(`User connected: ${username} (ID: ${userId})`);
@@ -44,42 +51,48 @@ io.on("connection", (socket) => {
     socket.to(roomId).emit("user-stopped-typing", { sender });
   });
 
-  socket.on("send-message", async ({ message, roomId, }) => {
+  socket.on("send-message", async ({ message, roomId }) => {
     try {
       if (message && userId && roomId) {
-        await axios.post(`$ http:localhost:3000/api/messages`, {
+        await axios.post(`${process.env.NEXTAUTH_URL}/api/messages`, {
           text: message,
           senderId: userId,
           sender: username,
           roomId,
         });
-        const createdAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+        const createdAt = new Date().toISOString();
 
         io.to(roomId).emit("receive-message", {
           senderId: userId,
-          senderName: username,
+          sender: username,
           message,
           createdAt,
         });
+
         console.log(`Message sent from ${username} to ${roomId}: ${message}`);
       } else {
-        console.log("Message, User ID, or Receiver ID is missing");
+        console.log("Message, User ID, or Room ID is missing", {
+          message,
+          userId,
+          roomId,
+        });
       }
     } catch (err) {
       console.error("Error sending message:", err);
     }
   });
 
-  socket.on("clear-chat", ({ roomId }) => {
-    socket.to(roomId).emit("chat-cleared");
-  });
-
+  // socket.on("clear-chat", ({ roomId }) => {
+  //   socket.to(roomId).emit("chat-cleared");
+  // });
 
   socket.on("disconnect", () => {
     console.log(`Disconnected: ${socket.id}`);
   });
 });
 
-
 const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => console.log(`server is running on post ${PORT}`));
+server.listen(PORT, () =>
+  console.log(`server is running on port ${PORT}`)
+);
