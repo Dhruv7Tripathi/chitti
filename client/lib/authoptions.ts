@@ -43,7 +43,6 @@ export const authOptions = {
       }
     },
     async jwt({ token, user }) {
-      // Only called when user first signs in so requiring less db calls
       if (user && user.email) {
         const dbUser = await db.user.findUnique({
           where: {
@@ -51,7 +50,6 @@ export const authOptions = {
           },
         });
 
-        // This will not happen as we are storing the user in db on sign in callback
         if (!dbUser) {
           return token;
         }

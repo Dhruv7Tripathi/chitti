@@ -15,7 +15,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import TypingBubble from "@/components/typingbubble";
-import ChatDropDownMenu from "@/components/chatdropdownmenu";
 import { ChatSkeleton, HeaderSkeleton, MessagesSkeleton } from "@/components/loadingskeletons";
 import { NoMessagesBlock } from "@/components/status";
 import { ChatHeader } from "@/components/chatheader";
@@ -35,7 +34,6 @@ export default function ChatRoom() {
   const [hasMounted, setHasMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState<boolean>(true);
-  // const [isOnline, setIsOnline] = useState(false);
   const [messages, setMessages] = useState<{ sender: string; text: string; createdAt: string }[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isTyping, setIsTyping] = useState(false);
@@ -45,6 +43,8 @@ export default function ChatRoom() {
   const [socketConnected, setSocketConnected] = useState(false);
 
   useEffect(() => {
+    if (status !== "authenticated") return; // ✅ Wait until session is ready
+
     const [id1, id2] = decodeURIComponent(
       Array.isArray(roomId) ? roomId.join("") : roomId ?? ""
     ).split("$");
@@ -58,11 +58,7 @@ export default function ChatRoom() {
           console.warn("User not found, redirecting to sign in...");
           router.push("/signin");
         } else {
-          if (error instanceof Error) {
-            console.error("Error fetching user data:", error.message);
-          } else {
-            console.error("Error fetching user data:", error);
-          }
+          console.error("Error fetching user data:", error);
         }
         return null;
       }
@@ -96,42 +92,32 @@ export default function ChatRoom() {
         );
         scrollToBottom();
 
-        const currentUserId = session?.user?.id;
-        if (status === "loading") return;
+        const user1 = await fetchUserById(id1);
+        const user2 = await fetchUserById(id2);
 
-        if (!currentUserId) {
+        if (!user1 || !user2) {
           router.push("/signin");
           return;
         }
 
-        const user1 = await fetchUserById(id1);
-        const user2 = await fetchUserById(id2);
-
-        if (!user1 || !user2) router.push("/signin");
-
         const receiverName =
-          currentUserId === id1
+          session.user.id === id1
             ? user2?.name ?? "Loading.."
             : user1?.name ?? "Loading..";
-        const receiverImage =
-          currentUserId === id1 ? user2?.image ?? "" : user1?.image ?? "";
+        const receiverImg =
+          session.user.id === id1 ? user2?.image ?? "" : user1?.image ?? "";
 
         setReceiver(receiverName);
-        setReceiverImage(receiverImage);
+        setReceiverImage(receiverImg);
       } catch (error) {
-        if (error instanceof Error) {
-          console.error("Error fetching messages:", error.message);
-        } else {
-          console.error("Error fetching messages:", error);
-        }
+        console.error("Error fetching messages:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchMessages();
-  }, [roomId, router, session?.user?.id, status]);
-
+  }, [roomId, session, status, router]);
 
   useEffect(() => {
     if (socket && roomId) {
@@ -158,24 +144,26 @@ export default function ChatRoom() {
         setIsTyping(false);
       });
 
-      // socket.on("online-users", (users) => {
-      //   const isOnline = users.some(
-      //     (user: { username: string }) => user.username === receiver
-      //   );
-      //   setIsOnline(isOnline);
-      // });
-
-      // socket.on("chat-cleared", () => {
-      //   setMessages([]);
-      // });
-
       return () => {
         socket.off("receive-message");
         socket.off("user-typing");
         socket.off("user-stopped-typing");
       };
     }
-  }, [socket, roomId, session?.user.name, receiver]);
+  }, [socket, roomId, session?.user.name]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("connected", () => {
+        setSocketConnected(true);
+        console.log("Socket connection established");
+      });
+
+      return () => {
+        socket.off("connected");
+      };
+    }
+  }, [socket]);
 
   const handleTyping = () => {
     socket?.emit("typing", {
@@ -194,48 +182,6 @@ export default function ChatRoom() {
       });
     }, 1000);
   };
-
-  // useEffect(() => {
-  //   const updateViewportHeight = () => {
-  //     setViewportHeight(`${window.innerHeight}px`)
-  //   }
-
-  //   updateViewportHeight()
-
-  //   window.addEventListener("resize", updateViewportHeight)
-  //   window.addEventListener("orientationchange", updateViewportHeight)
-
-  //   return () => {
-  //     window.removeEventListener("resize", updateViewportHeight)
-  //     window.removeEventListener("orientationchange", updateViewportHeight)
-  //   }
-  // }, [])
-
-  // const clearChat = async () => {
-  //   try {
-  //     await axios.delete(`/api/messages`, { data: { roomId } });
-  //     socket?.emit("clear-chat", { roomId });
-  //     setMessages([]);
-  //     toast({
-  //       description: "Chat cleared succesfully",
-  //     });
-  //   } catch (error) {
-  //     console.error("Error clearing chat:", error);
-  //   }
-  // };
-
-  useEffect(() => {
-    if (socket) {
-      socket.on("connected", () => {
-        setSocketConnected(true);
-        console.log("Socket connection established");
-      });
-
-      return () => {
-        socket.off("connected");
-      };
-    }
-  }, [socket]);
 
   const sendMessage = async () => {
     if (!message.trim()) return;
@@ -256,7 +202,6 @@ export default function ChatRoom() {
     setMessage("");
     console.log("Message sent:", message);
   };
-
 
   const scrollToBottom = (smooth: boolean = true) => {
     messagesEndRef.current?.scrollIntoView({
@@ -282,7 +227,7 @@ export default function ChatRoom() {
     setHasMounted(true);
   }, []);
 
-  if (!hasMounted) {
+  if (!hasMounted || status === "loading") {
     return <ChatSkeleton />;
   }
 
@@ -292,66 +237,64 @@ export default function ChatRoom() {
 
   return (
     <Sheet>
-      <div className="flex flex-col bg-neutral-950 overflow-hidden" style={{ height: viewportHeight }}>
-        <div className="p-4 border-b border-neutral-900 flex items-center justify-between bg-neutral-950 shadow-sm z-10">
-          {loading ? (
-            <HeaderSkeleton />
-          ) : (
-            <ChatHeader
-              // isOnline={isOnline}
-              receiverImage={receiverImage || ""}
-              receiver={receiver || ""} />
-          )}
-          {/* <ChatDropDownMenu clearChat={clearChat} /> */}
+      <div className="flex h-screen bg-black text-white">
+        <ChatSidebar />
+        <div className="flex flex-col bg-neutral-950 overflow-hidden" style={{ height: viewportHeight }}>
+          <div className="p-4 border-b border-neutral-900 flex items-center justify-between bg-neutral-950 shadow-sm z-10">
+            {loading ? (
+              <HeaderSkeleton />
+            ) : (
+              <ChatHeader
+                receiverImage={receiverImage || ""}
+                receiver={receiver || ""}
+              />
+            )}
+          </div>
+          <div className="flex-1 overflow-hidden relative">
+            <CustomScrollArea className="h-full talko-pattern bg-neutral-900">
+              <div className="space-y-4 py-2 pb-2">
+                {loading ? (
+                  <MessagesSkeleton />
+                ) : messages.length === 0 ? (
+                  <NoMessagesBlock />
+                ) : (
+                  messages.map((msg, idx) => (
+                    <MessageBubble
+                      key={idx}
+                      text={msg.text}
+                      createdAt={msg.createdAt}
+                      isSender={msg.sender === session?.user.name}
+                    />
+                  ))
+                )}
+                {isTyping && typingUser && (
+                  <TypingBubble />
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            </CustomScrollArea>
+          </div>
+          <ChatInput
+            message={message}
+            setMessage={setMessage}
+            sendMessage={sendMessage}
+            handleTyping={handleTyping}
+            handleKeyDown={handleKeyDown}
+          />
         </div>
-        <div className="flex-1 overflow-hidden relative">
-          <CustomScrollArea className="h-full talko-pattern bg-neutral-900">
-            <div className="space-y-4 py-2 pb-2">
-              {loading ? (
-                <MessagesSkeleton />
-              ) : messages.length === 0 ? (
-                <NoMessagesBlock />
-              ) : (
-                messages.map((msg, idx) => (
-                  <MessageBubble
-                    key={idx}
-                    text={msg.text}
-                    createdAt={msg.createdAt}
-                    isSender={msg.sender === session?.user.name}
-                  />
-                ))
-              )}
-              {isTyping && typingUser && (
-                <TypingBubble />
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+        <SheetContent className="bg-neutral-950 text-white border-neutral-900 px-2 pr-4">
+          <SheetHeader>
+            <SheetTitle></SheetTitle>
+            <SheetDescription></SheetDescription>
+          </SheetHeader>
+          <CustomScrollArea className="h-full">
+            <ChatSidebar />
           </CustomScrollArea>
-        </div>
-        <ChatInput
-          message={message}
-          setMessage={setMessage}
-          sendMessage={sendMessage}
-          handleTyping={handleTyping}
-          handleKeyDown={handleKeyDown}
-        />
+          <SheetFooter>
+            <SheetClose asChild></SheetClose>
+          </SheetFooter>
+        </SheetContent>
       </div>
-      <SheetContent className="bg-neutral-950 text-white border-neutral-900 px-2 pr-4">
-        <SheetHeader>
-          <SheetTitle></SheetTitle>
-          <SheetDescription></SheetDescription>
-        </SheetHeader>
-        <CustomScrollArea className="h-full">
-          <ChatSidebar />
-        </CustomScrollArea>
-        <SheetFooter>
-          <SheetClose asChild></SheetClose>
-        </SheetFooter>
-      </SheetContent>
     </Sheet>
   );
-}
-
-function toast(arg0: { description: string; }) {
-  throw new Error("Function not implemented.");
 }

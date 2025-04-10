@@ -1,9 +1,10 @@
-import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/db";
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { text, senderId, sender, roomId } = await request.json();
+    const body = await req.json();
+    const { text, senderId, sender, roomId } = body;
 
     const message = await prisma.message.create({
       data: {
@@ -14,21 +15,26 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(message, { status: 201 });
-
-  }
-  catch (error) {
-    console.error('Error creating message:', error);
-    return NextResponse.json({ error: 'Error creating message' }, { status: 500 });
+    return NextResponse.json(message, { status: 200 });
+  } catch (error) {
+    console.error("Error storing message:", error);
+    return NextResponse.json({ message: "Error storing message" }, { status: 500 });
   }
 }
-export async function GET(request: NextRequest){
+
+export async function GET(req: NextRequest) {
   try {
-    
+    const roomId = req.nextUrl.searchParams.get("roomId");
+    console.log("\n\n\n\nFetching messages for roomId:\n\n\n", roomId);
+    const messages = await prisma.message.findMany({
+      where: { roomId: roomId ?? undefined },
+      orderBy: { createdAt: "asc" },
+    });
+
+    return NextResponse.json(messages, { status: 200 });
   } catch (error) {
-    console.error('Error fetching messages:', error);
-    return NextResponse.json({ error: 'Error fetching messages' }, { status: 500 });
-    
+    console.error("Error fetching messages:", error);
+    return NextResponse.json({ message: "Error fetching messages" }, { status: 500 });
   }
 }
 
