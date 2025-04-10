@@ -13,6 +13,7 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
+  SheetTrigger,
 } from "@/components/ui/sheet";
 import TypingBubble from "@/components/typingbubble";
 import { ChatSkeleton, HeaderSkeleton, MessagesSkeleton } from "@/components/loadingskeletons";
@@ -22,6 +23,9 @@ import ChatInput from "@/components/chatinput";
 import MessageBubble from "@/components/messagebubble";
 import useRequireAuth from "@/hooks/useRequireAuth";
 import ChatSidebar from "@/components/chatsidebar";
+import { Menu, Users, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 export default function ChatRoom() {
   useRequireAuth();
@@ -41,6 +45,19 @@ export default function ChatRoom() {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [viewportHeight, setViewportHeight] = useState("100vh");
   const [socketConnected, setSocketConnected] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Handle mobile viewport height issues
+      setViewportHeight(`${window.innerHeight}px`);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -54,7 +71,6 @@ export default function ChatRoom() {
         const response = await axios.get(`/api/userdetails/${userId}`);
         return response.data;
       }
-
       catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 404) {
           console.warn("User not found, redirecting to sign in...");
@@ -229,6 +245,10 @@ export default function ChatRoom() {
     setHasMounted(true);
   }, []);
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   if (!hasMounted || status === "loading") {
     return <ChatSkeleton />;
   }
@@ -238,44 +258,81 @@ export default function ChatRoom() {
   }
 
   return (
-    <Sheet>
-      <div className="flex h-screen bg-black text-white">
-        <ChatSidebar />
-        <div className="flex flex-col bg-neutral-950 overflow-hidden" style={{ height: viewportHeight }}>
-          <div className="p-4 border-b border-neutral-900 flex items-center justify-between bg-neutral-950 shadow-sm z-10">
-            {loading ? (
-              <HeaderSkeleton />
-            ) : (
-              <ChatHeader
-                receiverImage={receiverImage || ""}
-                receiver={receiver || ""}
-              />
-            )}
-          </div>
-          <div className="flex-1 overflow-hidden relative">
-            <CustomScrollArea className="h-full talko-pattern bg-neutral-900">
-              <div className="space-y-4 py-2 pb-2">
-                {loading ? (
-                  <MessagesSkeleton />
-                ) : messages.length === 0 ? (
-                  <NoMessagesBlock />
-                ) : (
-                  messages.map((msg, idx) => (
-                    <MessageBubble
-                      key={idx}
-                      text={msg.text}
-                      createdAt={msg.createdAt}
-                      isSender={msg.sender === session?.user.name}
-                    />
-                  ))
-                )}
-                {isTyping && typingUser && (
-                  <TypingBubble />
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-            </CustomScrollArea>
-          </div>
+    <div className="flex h-screen bg-black text-white" style={{ height: viewportHeight }}>
+      {/* Sidebar for desktop */}
+      {!isMobile && (
+        <div className="hidden md:block w-64 border-r border-neutral-900">
+          <ChatSidebar />
+        </div>
+      )}
+
+      {/* Main Chat Area */}
+      <div className="flex flex-col bg-neutral-950 flex-1 overflow-hidden">
+        {/* Chat Header */}
+        <div className="p-3 border-b border-neutral-900 flex items-center justify-between bg-neutral-950 shadow-sm z-10">
+          {isMobile && (
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="mr-2">
+                  <Menu size={20} className="text-neutral-400" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-full sm:w-80 bg-neutral-950 text-white border-neutral-900">
+                <div className="flex justify-end p-4">
+                  <SheetClose asChild>
+                    <Button variant="ghost" size="icon">
+                      <X size={20} className="text-neutral-400" />
+                    </Button>
+                  </SheetClose>
+                </div>
+                <CustomScrollArea className="h-[calc(100vh-80px)]">
+                  <ChatSidebar onSelectChat={() => setSidebarOpen(false)} />
+                </CustomScrollArea>
+              </SheetContent>
+            </Sheet>
+          )}
+
+          {loading ? (
+            <HeaderSkeleton />
+          ) : (
+            <div className="flex-1">
+              <ChatHeader receiverImage={receiverImage || ""} receiver={receiver || ""} />
+            </div>
+          )}
+
+          <Button variant="ghost" size="icon" className="ml-2">
+            <Users size={20} className="text-neutral-400" />
+          </Button>
+        </div>
+
+        {/* Messages Area */}
+        <div className="flex-1 overflow-hidden relative">
+          <CustomScrollArea className="h-full talko-pattern bg-neutral-900">
+            <div className="space-y-4 py-4 px-3">
+              {loading ? (
+                <MessagesSkeleton />
+              ) : messages.length === 0 ? (
+                <NoMessagesBlock />
+              ) : (
+                messages.map((msg, idx) => (
+                  <MessageBubble
+                    key={idx}
+                    text={msg.text}
+                    createdAt={msg.createdAt}
+                    isSender={msg.sender === session?.user.name}
+                  />
+                ))
+              )}
+              {isTyping && typingUser && (
+                <TypingBubble />
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          </CustomScrollArea>
+        </div>
+
+        {/* Chat Input */}
+        <div className="p-3 bg-neutral-950 border-t border-neutral-900">
           <ChatInput
             message={message}
             setMessage={setMessage}
@@ -284,19 +341,7 @@ export default function ChatRoom() {
             handleKeyDown={handleKeyDown}
           />
         </div>
-        <SheetContent className="bg-neutral-950 text-white border-neutral-900 px-2 pr-4">
-          <SheetHeader>
-            <SheetTitle></SheetTitle>
-            <SheetDescription></SheetDescription>
-          </SheetHeader>
-          <CustomScrollArea className="h-full">
-            <ChatSidebar />
-          </CustomScrollArea>
-          <SheetFooter>
-            <SheetClose asChild></SheetClose>
-          </SheetFooter>
-        </SheetContent>
       </div>
-    </Sheet>
+    </div>
   );
 }
