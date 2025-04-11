@@ -9,10 +9,6 @@ import {
   Sheet,
   SheetClose,
   SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import TypingBubble from "@/components/typingbubble";
@@ -244,9 +240,9 @@ export default function ChatRoom() {
     setHasMounted(true);
   }, []);
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+  // const toggleSidebar = () => {
+  //   setSidebarOpen(!sidebarOpen);
+  // };
 
   if (!hasMounted || status === "loading") {
     return <ChatSkeleton />;

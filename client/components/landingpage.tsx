@@ -96,7 +96,7 @@ export default function LandingPage() {
 
                 <div className="max-w-xs bg-emerald-500 p-3 rounded-lg rounded-tl-none">
                   <div className="text-xs mb-1 font-semibold">yuvraj</div>
-                  <div>I'm still learning it. Any good resources?</div>
+                  <div>I&apos;m still learning it. Any good resources?</div>
                 </div>
 
                 <div className="max-w-xs ml-auto bg-white/10 p-3 rounded-lg rounded-tr-none animate-pulse">
