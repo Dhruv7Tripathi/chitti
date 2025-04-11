@@ -50,7 +50,6 @@ export default function ChatRoom() {
 
   useEffect(() => {
     const handleResize = () => {
-      // Handle mobile viewport height issues
       setViewportHeight(`${window.innerHeight}px`);
     };
 
@@ -259,16 +258,13 @@ export default function ChatRoom() {
 
   return (
     <div className="flex h-screen bg-black text-white" style={{ height: viewportHeight }}>
-      {/* Sidebar for desktop */}
       {!isMobile && (
         <div className="hidden md:block w-64 border-r border-neutral-900">
           <ChatSidebar />
         </div>
       )}
 
-      {/* Main Chat Area */}
       <div className="flex flex-col bg-neutral-950 flex-1 overflow-hidden">
-        {/* Chat Header */}
         <div className="p-3 border-b border-neutral-900 flex items-center justify-between bg-neutral-950 shadow-sm z-10">
           {isMobile && (
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
@@ -305,7 +301,6 @@ export default function ChatRoom() {
           </Button>
         </div>
 
-        {/* Messages Area */}
         <div className="flex-1 overflow-hidden relative">
           <CustomScrollArea className="h-full talko-pattern bg-neutral-900">
             <div className="space-y-4 py-4 px-3">
@@ -331,7 +326,6 @@ export default function ChatRoom() {
           </CustomScrollArea>
         </div>
 
-        {/* Chat Input */}
         <div className="p-3 bg-neutral-950 border-t border-neutral-900">
           <ChatInput
             message={message}

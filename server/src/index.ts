@@ -4,14 +4,23 @@ import { Server } from "socket.io";
 import cors from "cors";
 import dotenv from "dotenv";
 import axios from "axios";
+
 dotenv.config();
+
+const NEXTAUTH_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
+console.log("NEXTAUTH_URL:", NEXTAUTH_URL);
+
+if (!NEXTAUTH_URL) {
+  console.error("❌ NEXTAUTH_URL is not defined in your .env file.");
+  process.exit(1);
+}
 
 const app = express();
 const server = createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.NEXTAUTH_URL || "*",
+    origin: NEXTAUTH_URL,
     credentials: true,
   },
 });
@@ -25,74 +34,85 @@ io.on("connection", (socket) => {
     username?: string;
   };
 
-  if (userId && username) {
-    console.log(`User connected: ${username} (ID: ${userId})`);
-    socket.emit("connected");
-  } else {
-    console.log("User connected without ID or username");
+  if (!userId || !username) {
+    console.log("❌ User connected without valid ID or username. Disconnecting...");
+    socket.disconnect(true);
     return;
   }
 
-  socket.on("join-room", ({ roomId }) => {
-    if (roomId && userId && username) {
-      socket.join(roomId);
-      console.log(`${username} joined room: ${roomId} (ID: ${userId})`);
-      io.to(roomId).emit("user-joined", `${username} has joined the room.`);
-    } else {
-      console.log("Room ID, User ID, or Username is missing");
-    }
+  console.log(`✅ User connected: ${username} (ID: ${userId})`);
+  socket.emit("connected");
+
+  socket.on("join-room", ({ roomId }: { roomId: string }) => {
+    if (!roomId) return;
+    socket.join(roomId);
+    console.log(`➡️ ${username} joined room: ${roomId}`);
+    io.to(roomId).emit("user-joined", `${username} has joined the room.`);
   });
 
-  socket.on("typing", ({ roomId, sender }) => {
+  socket.on("typing", ({ roomId, sender }: { roomId: string; sender: string }) => {
     socket.to(roomId).emit("user-typing", { sender });
   });
 
-  socket.on("stop-typing", ({ roomId, sender }) => {
+  socket.on("stop-typing", ({ roomId, sender }: { roomId: string; sender: string }) => {
     socket.to(roomId).emit("user-stopped-typing", { sender });
   });
 
-  socket.on("send-message", async ({ message, roomId }) => {
+  socket.on("send-message", async ({
+    message,
+    roomId,
+  }: {
+    message: string;
+    roomId: string;
+  }) => {
+    if (!message || !userId || !roomId) {
+      console.log("❌ Missing data to send message", {
+        message,
+        userId,
+        roomId,
+      });
+      return;
+    }
+
     try {
-      if (message && userId && roomId) {
-        await axios.post(`${process.env.NEXTAUTH_URL}/api/messages`, {
-          text: message,
-          senderId: userId,
-          sender: username,
-          roomId,
-        });
+      const apiUrl = `${NEXTAUTH_URL}/api/messages`;
+      console.log(`Sending message to API: ${apiUrl}`);
 
-        const createdAt = new Date().toISOString();
+      await axios.post(apiUrl, {
+        text: message,
+        senderId: userId,
+        sender: username,
+        roomId,
+      });
 
-        io.to(roomId).emit("receive-message", {
-          senderId: userId,
-          sender: username,
-          message,
-          createdAt,
-        });
+      const createdAt = new Date().toISOString();
 
-        console.log(`Message sent from ${username} to ${roomId}: ${message}`);
-      } else {
-        console.log("Message, User ID, or Room ID is missing", {
-          message,
-          userId,
-          roomId,
-        });
-      }
+      io.to(roomId).emit("receive-message", {
+        senderId: userId,
+        senderName: username,
+        message,
+        createdAt,
+      });
+
+      console.log(`📨 ${username} -> [${roomId}]: ${message}`);
     } catch (err) {
       console.error("Error sending message:", err);
+      if (axios.isAxiosError(err)) {
+        console.error("Request URL:", err.config?.url);
+        console.error("Response status:", err.response?.status);
+        console.error("Response data:", err.response?.data);
+      }
     }
   });
 
-  // socket.on("clear-chat", ({ roomId }) => {
-  //   socket.to(roomId).emit("chat-cleared");
-  // });
-
   socket.on("disconnect", () => {
-    console.log(`Disconnected: ${socket.id}`);
+    console.log(`❎ Disconnected: ${username} (Socket ID: ${socket.id})`);
   });
 });
 
 const PORT = process.env.PORT || 4000;
-server.listen(PORT, () =>
-  console.log(`server is running on port ${PORT}`)
-);
+
+server.listen(PORT, () => {
+  console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  console.log(`🔌 Using NEXTAUTH_URL: ${NEXTAUTH_URL}`);
+});
