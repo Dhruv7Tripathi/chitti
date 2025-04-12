@@ -18,7 +18,7 @@ import { ChatHeader } from "@/components/chatheader";
 import ChatInput from "@/components/chatinput";
 import MessageBubble from "@/components/messagebubble";
 import useRequireAuth from "@/hooks/useRequireAuth";
-import ChatSidebar from "@/components/ChatSidebar";
+// import ChatSidebar from "@/components/ChatSidebar";
 import { Menu, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -256,7 +256,7 @@ export default function ChatRoom() {
     <div className="flex h-screen bg-black text-white" style={{ height: viewportHeight }}>
       {!isMobile && (
         <div className="hidden md:block w-64 border-r border-neutral-900">
-          <ChatSidebar />
+          {/* <ChatSidebar /> */}
         </div>
       )}
 
@@ -278,7 +278,7 @@ export default function ChatRoom() {
                   </SheetClose>
                 </div>
                 <CustomScrollArea className="h-[calc(100vh-80px)]">
-                  <ChatSidebar onSelectChat={() => setSidebarOpen(false)} />
+                  {/* <ChatSidebar onSelectChat={() => setSidebarOpen(false)} /> */}
                 </CustomScrollArea>
               </SheetContent>
             </Sheet>
