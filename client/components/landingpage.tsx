@@ -122,8 +122,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Features Section */}
-      {/* <div id="features" className="relative z-10 bg-indigo-950/50 backdrop-blur-lg py-24">
+      <div id="features" className="relative z-10 from-black via-gray-800 to-black py-24">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Why Choose ConnectChat?</h2>
@@ -168,9 +167,8 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </div> */}
+      </div>
 
-      {/* Footer */}
       <footer className="relative z-10 from-black via-gray-800 to-black py-6 ">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
