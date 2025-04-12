@@ -18,7 +18,7 @@ import { ChatHeader } from "@/components/chatheader";
 import ChatInput from "@/components/chatinput";
 import MessageBubble from "@/components/messagebubble";
 import useRequireAuth from "@/hooks/useRequireAuth";
-import ChatSidebar from "@/components/chatsidebar";
+import ChatSidebar from "@/components/Chatsidebar";
 import { Menu, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/useMediaQuery";

@@ -1,7 +1,8 @@
+"use client"
 import React from 'react'
-import ChatSidebar from '@/components/chatsidebar'
+import ChatSidebar from '@/components/Chatsidebar'
 
-const Room = () => {
+export default function Room() {
   return (
     <div className="flex h-screen bg-black text-white">
       <ChatSidebar />
@@ -32,6 +33,4 @@ const Room = () => {
     </div>
   )
 }
-
-export default Room
 
