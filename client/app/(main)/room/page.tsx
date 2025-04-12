@@ -1,6 +1,6 @@
 "use client"
 import React from 'react'
-import ChatSidebar from '@/components/Chatsidebar'
+import ChatSidebar from '@/components/ChatSidebar'
 
 export default function Room() {
   return (
