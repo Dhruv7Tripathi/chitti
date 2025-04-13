@@ -29,26 +29,27 @@
 
 ## 🚀 Getting Started
 
-<!-- ### 📦 Cloning the Repository
-
-```bash
-git clone https://github.com/dhruv7tripathi/chitti.git
-cd chitti -->
-
 🧑‍💻 Client Setup
 
 cd client
+
 npm install
-🔐 Configuration
+
 Create a .env file in /client/ using the example below:
 
-DATABASE_URL=
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-NEXTAUTH_SECRET=
-NEXTAUTH_URL=http://localhost:3000
-NEXT_PUBLIC_API_URL=http://localhost:3000
-NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
+- DATABASE_URL=
+
+- GOOGLE_CLIENT_ID=
+
+- GOOGLE_CLIENT_SECRET=
+
+- NEXTAUTH_SECRET=
+
+- NEXTAUTH_URL=http://localhost:3000
+
+- NEXT_PUBLIC_API_URL=http://localhost:3000
+
+- NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
 
 ▶️ Running the Client
 
@@ -57,8 +58,9 @@ npm run dev
 🖥️ Server Setup
 
 cd server
+
 npm install
-🔐 Configuration
+
 Create a .env file in /server/ using the example below:
 
 env
@@ -72,6 +74,7 @@ bash
 npm run dev
 
 🤝 Contribution Guide
+
 Fork the repo
 
 Create a new branch:
