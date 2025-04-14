@@ -8,7 +8,7 @@ export const useSocket = () => {
 
   useEffect(() => {
     if (session?.user) {
-      const newSocket = io(process.env.SERVER_URL || "http://localhost:4000", {
+      const newSocket = io(process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:4000", {
         query: {
           userId: session.user.id,
           username: session.user.name,
