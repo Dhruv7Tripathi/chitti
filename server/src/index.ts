@@ -10,7 +10,7 @@ dotenv.config();
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
 if (!CLIENT_URL) {
-  console.error("❌ CLIENT_URL is not defined in your .env file.");
+  // console.error("❌ CLIENT_URL is not defined in your .env file.");
   process.exit(1);
 }
 
@@ -99,7 +99,7 @@ io.on("connection", (socket) => {
       if (axios.isAxiosError(err)) {
         console.error("Request URL:", err.config?.url);
         console.error("Response status:", err.response?.status);
-        console.error("Response data:", err.response?.data);
+        // console.error("Response data:", err.response?.data);
       }
     }
   });
