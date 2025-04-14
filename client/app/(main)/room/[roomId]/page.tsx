@@ -372,7 +372,7 @@ export default function ChatRoom() {
   const [viewportHeight, setViewportHeight] = useState("100vh");
   const [socketConnected, setSocketConnected] = useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
+  // const [mobileSidebarVisible, setMobileSidebarVisible] = useState(false);
 
   // Custom event to toggle sidebar from this component
   const toggleMobileSidebar = () => {

@@ -43,7 +43,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <ChatSidebar />
         </div>
       ) : (
-        // Mobile version - sidebar in a Sheet component
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
           <SheetContent side="left" className="p-0 w-full sm:w-80 bg-neutral-950 text-white border-neutral-900">
             <div className="flex justify-end p-4">
