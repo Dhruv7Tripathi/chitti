@@ -19,16 +19,16 @@ const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const axios_1 = __importDefault(require("axios"));
 dotenv_1.default.config();
-const NEXTAUTH_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
-if (!NEXTAUTH_URL) {
-    console.error("❌ NEXTAUTH_URL is not defined in your .env file.");
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+if (!CLIENT_URL) {
+    console.error("❌ CLIENT_URL is not defined in your .env file.");
     process.exit(1);
 }
 const app = (0, express_1.default)();
 const server = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(server, {
     cors: {
-        origin: NEXTAUTH_URL,
+        origin: CLIENT_URL,
         credentials: true,
     },
 });
@@ -67,7 +67,7 @@ io.on("connection", (socket) => {
             return;
         }
         try {
-            const apiUrl = `${NEXTAUTH_URL}/api/messages`;
+            const apiUrl = `${CLIENT_URL}/api/messages`;
             console.log(`Sending message to API: ${apiUrl}`);
             yield axios_1.default.post(apiUrl, {
                 text: message,

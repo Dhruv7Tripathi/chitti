@@ -7,10 +7,10 @@ import axios from "axios";
 
 dotenv.config();
 
-const NEXTAUTH_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
-if (!NEXTAUTH_URL) {
-  console.error("❌ NEXTAUTH_URL is not defined in your .env file.");
+if (!CLIENT_URL) {
+  console.error("❌ CLIENT_URL is not defined in your .env file.");
   process.exit(1);
 }
 
@@ -19,7 +19,7 @@ const server = createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: NEXTAUTH_URL,
+    origin: CLIENT_URL,
     credentials: true,
   },
 });
@@ -74,7 +74,7 @@ io.on("connection", (socket) => {
     }
 
     try {
-      const apiUrl = `${NEXTAUTH_URL}/api/messages`;
+      const apiUrl = `${CLIENT_URL}/api/messages`;
       console.log(`Sending message to API: ${apiUrl}`);
 
       await axios.post(apiUrl, {

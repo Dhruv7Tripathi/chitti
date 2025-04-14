@@ -55,7 +55,7 @@ export default function ChatSidebar({ onSelectChat }: ChatSidebarProps) {
 
       fetchUsers()
     } else if (status === "unauthenticated") {
-      router.push("/login")
+      router.push("/signin")
     }
   }, [status, router])
 

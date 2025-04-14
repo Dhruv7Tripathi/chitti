@@ -3,7 +3,6 @@ import React from 'react'
 export default function Room() {
   return (
     <div className="flex h-screen bg-black text-white">
-
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         <div className="flex items-center space-x-4 p-6 bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300">
           <svg
