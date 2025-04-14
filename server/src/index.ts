@@ -8,7 +8,6 @@ import axios from "axios";
 dotenv.config();
 
 const NEXTAUTH_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
-console.log("NEXTAUTH_URL:", NEXTAUTH_URL);
 
 if (!NEXTAUTH_URL) {
   console.error("❌ NEXTAUTH_URL is not defined in your .env file.");

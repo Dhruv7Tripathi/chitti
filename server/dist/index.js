@@ -20,7 +20,6 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const axios_1 = __importDefault(require("axios"));
 dotenv_1.default.config();
 const NEXTAUTH_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
-console.log("NEXTAUTH_URL:", NEXTAUTH_URL);
 if (!NEXTAUTH_URL) {
     console.error("❌ NEXTAUTH_URL is not defined in your .env file.");
     process.exit(1);
@@ -101,5 +100,4 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
     console.log(`🚀 Server is running on http://localhost:${PORT}`);
-    console.log(`🔌 Using NEXTAUTH_URL: ${NEXTAUTH_URL}`);
 });
