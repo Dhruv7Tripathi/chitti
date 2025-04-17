@@ -17,7 +17,6 @@ interface User {
   id: string
   name: string
   image: string
-  status?: 'online' | 'offline' | 'away'
   lastMessage?: string
   unreadCount?: number
 }
@@ -39,12 +38,6 @@ export default function ChatSidebar({ onSelectChat }: ChatSidebarProps) {
         setIsLoading(true)
         try {
           const response = await axios.get("/api/users")
-          // const enhancedUsers = response.data.map((user: User) => ({
-          //   ...user,
-          //   status: Math.random() > 0.5 ? 'online' : 'offline',
-          //   lastMessage: "",
-          //   unreadCount: Math.random() > 0.7 ? Math.floor(Math.random() * 5) + 1 : 0
-          // }));
           setUsers(response.data)
         } catch (error) {
           console.error("Error fetching users:", error)
@@ -123,9 +116,6 @@ export default function ChatSidebar({ onSelectChat }: ChatSidebarProps) {
               {user.name.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          {/* {user.status === 'online' && (
-            <span className="absolute bottom-0 right-3 h-3 w-3 rounded-full bg-green-500 border-2 border-black"></span>
-          )} */}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center">

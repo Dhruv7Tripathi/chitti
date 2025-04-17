@@ -51,14 +51,14 @@ export default function LandingPage() {
                 <div className="flex">
                   <input
                     type="text"
-                    placeholder="Choose a username"
+                    placeholder="start chatting with your friends..."
                     className="flex-1 bg-transparent px-4 py-3 outline-none text-white placeholder-white/60"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                   />
                   <Link
                     href={username ? `/chat?username=${encodeURIComponent(username)}` : "/room"}
-                    className="bg-white text-indigo-800 px-6 py-3 rounded-full font-medium hover:bg-indigo-100 transition"
+                    className="bg-white text-emerald-600 px-6 py-3 rounded-full font-medium hover:bg-white transition"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                   >
