@@ -23,7 +23,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Listen for the custom event from ChatRoom component
     const handleToggleSidebar = () => {
       setSidebarOpen(prev => !prev);
     };
@@ -38,7 +37,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen bg-black text-white">
       {!isMobile ? (
-        // Desktop version - sidebar always visible
         <div className="w-64 border-r border-neutral-900">
           <ChatSidebar />
         </div>

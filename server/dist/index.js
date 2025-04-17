@@ -21,7 +21,7 @@ const axios_1 = __importDefault(require("axios"));
 dotenv_1.default.config();
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 if (!CLIENT_URL) {
-    console.error("❌ CLIENT_URL is not defined in your .env file.");
+    // console.error("❌ CLIENT_URL is not defined in your .env file.");
     process.exit(1);
 }
 const app = (0, express_1.default)();
@@ -57,7 +57,7 @@ io.on("connection", (socket) => {
         socket.to(roomId).emit("user-stopped-typing", { sender });
     });
     socket.on("send-message", (_a) => __awaiter(void 0, [_a], void 0, function* ({ message, roomId, }) {
-        var _b, _c, _d;
+        var _b, _c;
         if (!message || !userId || !roomId) {
             console.log("❌ Missing data to send message", {
                 message,
@@ -89,7 +89,7 @@ io.on("connection", (socket) => {
             if (axios_1.default.isAxiosError(err)) {
                 console.error("Request URL:", (_b = err.config) === null || _b === void 0 ? void 0 : _b.url);
                 console.error("Response status:", (_c = err.response) === null || _c === void 0 ? void 0 : _c.status);
-                console.error("Response data:", (_d = err.response) === null || _d === void 0 ? void 0 : _d.data);
+                // console.error("Response data:", err.response?.data);
             }
         }
     }));

@@ -7,7 +7,8 @@ import axios from "axios";
 
 dotenv.config();
 
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+// const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const CLIENT_URL = "https://chitti-bice.vercel.app";
 
 if (!CLIENT_URL) {
   // console.error("❌ CLIENT_URL is not defined in your .env file.");
