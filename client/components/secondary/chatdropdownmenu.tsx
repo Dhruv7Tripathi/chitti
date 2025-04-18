@@ -1,9 +1,9 @@
 "use client"
 import { MoreVertical } from 'lucide-react';
 import React from 'react'
-import { Button } from '../components/ui/button';
-import { SheetTrigger } from '../components/ui/sheet';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { SheetTrigger } from '@/components/ui/sheet';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 
 interface Props {

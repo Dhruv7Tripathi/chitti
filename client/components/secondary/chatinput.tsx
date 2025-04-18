@@ -1,7 +1,7 @@
 import { Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import React from "react"
-import { CustomInput } from "../components/ui/custom-input"
+import { CustomInput } from "@/components/ui/custom-input"
 
 interface ChatInputProps {
   message: string
