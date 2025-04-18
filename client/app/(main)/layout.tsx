@@ -14,7 +14,7 @@ import { useState, useEffect } from "react";
 import ChatSidebar from "@/components/ChatSidebar";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { Sheet, SheetContent, SheetClose } from "@/components/ui/sheet";
-import { X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 
@@ -36,6 +36,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen bg-black text-white">
+      {isMobile && (
+        <div className="absolute top-4 left-4 z-50">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="w-6 h-6 text-white" />
+          </Button>
+        </div>
+      )}
       {!isMobile ? (
         <div className="w-64 border-r border-neutral-900">
           <ChatSidebar />
