@@ -164,7 +164,7 @@ export default function LandingPage() {
       <div id="features" className="relative z-10 from-black via-gray-800 to-black py-16 sm:py-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4">Why Choose ConnectChat?</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4">Why Choose Chitti?</h2>
             <p className="max-w-xl mx-auto text-indigo-200 text-sm sm:text-base">Our platform offers the best chat experience with cutting-edge features and a beautiful interface.</p>
           </div>
 

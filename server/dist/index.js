@@ -19,8 +19,8 @@ const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const axios_1 = __importDefault(require("axios"));
 dotenv_1.default.config();
-// const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
-const CLIENT_URL = "https://chitti-bice.vercel.app";
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+// const CLIENT_URL = "https://chitti-bice.vercel.app";
 if (!CLIENT_URL) {
     // console.error("❌ CLIENT_URL is not defined in your .env file.");
     process.exit(1);
