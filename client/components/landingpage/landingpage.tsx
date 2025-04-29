@@ -45,8 +45,8 @@ export default function LandingPage() {
 
         <div className="hidden md:flex items-center space-x-6">
           <div className="flex space-x-4">
-            <a href="#features" className="hover:text-indigo-200 transition text-sm">Features</a>
-            <a href="#about" className="hover:text-indigo-200 transition text-sm">About</a>
+            {/* <a href="#features" className="hover:text-indigo-200 transition text-sm">Features</a> */}
+            <a href="/about" className="hover:text-indigo-200 transition text-sm">About</a>
           </div>
 
           <div className="flex items-center">
@@ -194,8 +194,8 @@ export default function LandingPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 ),
-                title: "Secure Communication",
-                description: "End-to-end encryption ensures your conversations remain private and secure."
+                title: "Minimalistic and Fast UI:",
+                description: "Focus on conversations without any clutter."
               }
             ].map((feature, i) => (
               <div key={i} className="bg-white/5 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-white/10 hover:bg-white/10 transition">
