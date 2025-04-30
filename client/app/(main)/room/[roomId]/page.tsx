@@ -275,7 +275,14 @@ export default function ChatRoom() {
       </div>
 
       <div className="flex-1 overflow-hidden relative">
-        <CustomScrollArea className="h-full talko-pattern bg-neutral-900">
+        <CustomScrollArea
+          className="h-full bg-neutral-900"
+          style={{
+            backgroundImage: `/tele.png`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: 'auto',
+          }}
+        >
           <div className="space-y-4 py-4 px-3">
             {loading ? (
               <MessagesSkeleton />
