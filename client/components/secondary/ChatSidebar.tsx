@@ -3,9 +3,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, UserPlus, Settings } from "lucide-react"
+import { UserPlus } from "lucide-react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { Input } from "@/components/ui/input"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import axios from "axios"
@@ -29,7 +28,7 @@ export default function ChatSidebar({ onSelectChat }: ChatSidebarProps) {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -136,22 +135,9 @@ export default function ChatSidebar({ onSelectChat }: ChatSidebarProps) {
     <div className="h-full flex flex-col bg-black text-white">
       <div className="p-4 flex justify-between items-center border-b border-neutral-800">
         <h2 className="text-xl font-bold">Chats</h2>
-        <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white">
-          <Settings size={20} />
-        </Button>
       </div>
 
-      <div className="p-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-neutral-500" />
-          <Input
-            placeholder="Search conversations"
-            className="pl-9 py-2 bg-neutral-800 border-neutral-700 text-neutral-300 focus:ring-neutral-700 rounded-md"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
+
 
       <div className="flex-1 overflow-y-auto px-2">
         {renderContent()}

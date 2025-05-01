@@ -12,7 +12,7 @@ import { ChatHeader } from "@/components/secondary/chatheader";
 import ChatInput from "@/components/secondary/chatinput";
 import MessageBubble from "@/components/secondary/messagebubble";
 import useRequireAuth from "@/hooks/useRequireAuth";
-import { Users, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
@@ -269,9 +269,7 @@ export default function ChatRoom() {
         <div className="flex-1">
           {loading ? <HeaderSkeleton /> : <ChatHeader receiverImage={receiverImage || ""} receiver={receiver || ""} />}
         </div>
-        <Button variant="ghost" size="icon" className="ml-2">
-          <Users size={20} className="text-neutral-400" />
-        </Button>
+
       </div>
 
       <div className="flex-1 overflow-hidden relative">
