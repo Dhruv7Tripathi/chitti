@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useSession } from 'next-auth/react';
 import SignInButton from '../auth/SignInButton';
 import UserAccountNav from '../auth/UserAccountNav';
+import { Button } from "../ui/button";
+import { Send } from "lucide-react";
 
 export default function LandingPage() {
   const [username, setUsername] = useState("");
@@ -144,18 +146,22 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="flex rounded-full overflow-hidden bg-white/10 border border-white/10">
+              <div className="flex items-center rounded-full overflow-hidden bg-white/10 border border-white/10">
                 <input
                   type="text"
                   placeholder="Type your message..."
-                  className="flex-1 bg-transparent px-3 sm:px-4 py-2 sm:py-3 outline-none text-sm"
+                  className="flex-1 bg-transparent px-3 sm:px-4 py-2 sm:py-3 outline-none text-sm text-white placeholder:text-neutral-400"
+                  aria-label="Message input"
                 />
-                <button className="bg-emerald-500 px-3 sm:px-4">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
-                </button>
+                <Button
+                  type="submit"
+                  size="icon"
+                  className="rounded-none rounded-r-full bg-green-500 hover:bg-green-600"
+                >
+                  <Send className="h-5 w-5 text-white" />
+                </Button>
               </div>
+
             </div>
           </div>
         </div>

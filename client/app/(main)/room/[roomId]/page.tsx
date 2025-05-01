@@ -278,7 +278,7 @@ export default function ChatRoom() {
         <CustomScrollArea
           className="h-full bg-neutral-900"
           style={{
-            backgroundImage: `/tele.png`,
+            backgroundImage: `url(/background.jpeg)`,
             backgroundRepeat: 'repeat',
             backgroundSize: 'auto',
           }}
